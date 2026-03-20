@@ -93,3 +93,10 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+# Temporary SDK and JDK directories
+android_sdk/
+temp_jdk/
+
+# Temporary installation script
+install_sdk.bat

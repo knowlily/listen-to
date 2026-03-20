@@ -9,7 +9,7 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/Theme.SimpleBrowser.AppBarOverlay">
+>
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
@@ -42,7 +42,7 @@
                 <!-- 后退按钮 -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnBack"
-                    style="@style/Widget.Material3.IconButton"
+                    style="@style/Widget.MaterialComponents.Button.Icon"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_marginEnd="4dp"
@@ -54,7 +54,7 @@
                 <!-- 前进按钮 -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnForward"
-                    style="@style/Widget.Material3.IconButton"
+                    style="@style/Widget.MaterialComponents.Button.Icon"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_marginEnd="8dp"
@@ -66,7 +66,7 @@
                 <!-- 地址输入框 -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/urlInputLayout"
-                    style="@style/Widget.Material3.TextInputLayout.FilledBox"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -87,7 +87,7 @@
                 <!-- 刷新按钮 -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnRefresh"
-                    style="@style/Widget.Material3.IconButton"
+                    style="@style/Widget.MaterialComponents.Button.Icon"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:contentDescription="@string/refresh"
