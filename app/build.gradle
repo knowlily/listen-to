@@ -19,10 +19,21 @@ android {
 
     signingConfigs {
         release {
-            storeFile file('keystore.jks')
-            storePassword '***REMOVED***'
-            keyAlias '***REMOVED***'
-            keyPassword '***REMOVED***'
+            def signingProperties = new Properties()
+            def signingPropertiesFile = rootProject.file('signing.properties')
+            if (signingPropertiesFile.exists()) {
+                signingProperties.load(new FileInputStream(signingPropertiesFile))
+                storeFile file(signingProperties['storeFile'] ?: 'keystore.jks')
+                storePassword signingProperties['storePassword'] ?: '***REMOVED***'
+                keyAlias signingProperties['keyAlias'] ?: '***REMOVED***'
+                keyPassword signingProperties['keyPassword'] ?: '***REMOVED***'
+            } else {
+                // 如果没有配置文件，使用默认值（仅用于演示）
+                storeFile file('keystore.jks')
+                storePassword '***REMOVED***'
+                keyAlias '***REMOVED***'
+                keyPassword '***REMOVED***'
+            }
         }
     }
 
