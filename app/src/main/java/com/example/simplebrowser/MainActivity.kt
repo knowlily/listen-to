@@ -16,6 +16,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.EditText
 import android.widget.TextView
+import android.util.Log
+import android.util.Patterns
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
@@ -23,6 +25,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 
 class MainActivity : AppCompatActivity() {
+    private val TAG = "MainActivity"
 
     private lateinit var webView: WebView
     private lateinit var etUrl: TextInputEditText
@@ -122,9 +125,14 @@ class MainActivity : AppCompatActivity() {
                 failingUrl: String?
             ) {
                 super.onReceivedError(view, errorCode, description, failingUrl)
-                showError(getString(R.string.error_loading_page))
-                showLoading(false)
-                progressBar.visibility = View.GONE
+                try {
+                    Log.e(TAG, "网页加载错误: code=$errorCode, desc=$description, url=$failingUrl")
+                    showError(getString(R.string.error_loading_page))
+                    showLoading(false)
+                    progressBar.visibility = View.GONE
+                } catch (e: Exception) {
+                    Log.e(TAG, "处理错误时出错: ${e.message}", e)
+                }
             }
 
             @Suppress("DEPRECATION")
@@ -134,22 +142,34 @@ class MainActivity : AppCompatActivity() {
                 error: WebResourceError?
             ) {
                 super.onReceivedError(view, request, error)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (request?.isForMainFrame == true) {
-                        showError(getString(R.string.error_loading_page))
-                        showLoading(false)
-                        progressBar.visibility = View.GONE
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        val errorDesc = error?.description?.toString() ?: "Unknown"
+                        val errorCode = error?.errorCode?.toString() ?: "Unknown"
+                        val url = request?.url?.toString() ?: "Unknown"
+                        Log.e(TAG, "网页加载错误(新API): code=$errorCode, desc=$errorDesc, url=$url, isForMainFrame=${request?.isForMainFrame}")
+
+                        if (request?.isForMainFrame == true) {
+                            showError(getString(R.string.error_loading_page))
+                            showLoading(false)
+                            progressBar.visibility = View.GONE
+                        }
                     }
+                } catch (e: Exception) {
+                    Log.e(TAG, "处理错误时出错(新API): ${e.message}", e)
                 }
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                url?.let {
-                    if (!it.startsWith("file://")) {
-                        view?.loadUrl(it)
+                return try {
+                    if (url != null && !url.startsWith("file://")) {
+                        view?.loadUrl(url)
                     }
+                    true
+                } catch (e: Exception) {
+                    Log.e(TAG, "shouldOverrideUrlLoading失败: ${e.message}", e)
+                    false
                 }
-                return true
             }
         }
 
@@ -253,12 +273,33 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        var processedUrl = url
-        if (!processedUrl.startsWith("http://") && !processedUrl.startsWith("https://")) {
-            processedUrl = "https://$processedUrl"
+        // 检查URL是否为空或仅包含空白字符
+        val trimmedUrl = url.trim()
+        if (trimmedUrl.isEmpty()) {
+            showError("请输入有效网址")
+            return
         }
-        webView.loadUrl(processedUrl)
-        etUrl.clearFocus()
+
+        try {
+            var processedUrl = trimmedUrl
+            // 添加协议前缀如果缺失
+            if (!processedUrl.startsWith("http://") && !processedUrl.startsWith("https://")) {
+                processedUrl = "https://$processedUrl"
+            }
+
+            // 验证URL格式
+            if (!android.util.Patterns.WEB_URL.matcher(processedUrl).matches()) {
+                showError("网址格式无效")
+                return
+            }
+
+            webView.loadUrl(processedUrl)
+            etUrl.clearFocus()
+            Log.d(TAG, "加载URL: $processedUrl")
+        } catch (e: Exception) {
+            Log.e(TAG, "加载URL失败: ${e.message}", e)
+            showError("加载页面时出错: ${e.localizedMessage}")
+        }
     }
 
     private fun updateUrl(url: String?) {
