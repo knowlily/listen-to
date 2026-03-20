@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.SimpleBrowser" parent="Theme.Material3.DynamicColors.DayNight">
+    <style name="Theme.SimpleBrowser" parent="Theme.MaterialComponents.DayNight">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/md_theme_light_primary</item>
         <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
@@ -11,8 +11,6 @@
         <item name="colorTertiaryContainer">@color/md_theme_light_tertiaryContainer</item>
         <item name="colorSurface">@color/md_theme_light_surface</item>
         <item name="colorSurfaceVariant">@color/md_theme_light_surfaceVariant</item>
-        <item name="colorSurfaceContainer">@color/md_theme_light_surfaceContainer</item>
-        <item name="colorSurfaceContainerHigh">@color/md_theme_light_surfaceContainerHigh</item>
         <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
         <item name="colorOnPrimaryContainer">@color/md_theme_light_onPrimaryContainer</item>
         <item name="colorOnSecondary">@color/md_theme_light_onSecondary</item>
@@ -21,7 +19,6 @@
         <item name="colorOnTertiaryContainer">@color/md_theme_light_onTertiaryContainer</item>
         <item name="colorOnSurface">@color/md_theme_light_onSurface</item>
         <item name="colorOnSurfaceVariant">@color/md_theme_light_onSurfaceVariant</item>
-        <item name="colorBackground">@color/md_theme_light_background</item>
         <item name="colorOnBackground">@color/md_theme_light_onBackground</item>
         <item name="colorError">@color/md_theme_light_error</item>
         <item name="colorErrorContainer">@color/md_theme_light_errorContainer</item>
@@ -29,42 +26,10 @@
         <item name="colorOnErrorContainer">@color/md_theme_light_onErrorContainer</item>
         <item name="colorOutline">@color/md_theme_light_outline</item>
         <item name="colorOutlineVariant">@color/md_theme_light_outlineVariant</item>
-        <item name="colorShadow">@color/md_theme_light_shadow</item>
-        <item name="colorScrim">@color/md_theme_light_scrim</item>
-        <item name="colorInverseSurface">@color/md_theme_light_inverseSurface</item>
-        <item name="colorInverseOnSurface">@color/md_theme_light_inverseOnSurface</item>
-        <item name="colorInversePrimary">@color/md_theme_light_inversePrimary</item>
 
-        <!-- 启用动态取色 -->
-        <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors</item>
 
-        <!-- 应用栏样式 -->
-        <item name="appBarLayoutStyle">@style/Widget.Material3.AppBarLayout</item>
-        <item name="toolbarStyle">@style/Widget.Material3.Toolbar</item>
-
-        <!-- 按钮样式 -->
-        <item name="materialButtonStyle">@style/Widget.Material3.Button</item>
-        <item name="materialButtonOutlinedStyle">@style/Widget.Material3.Button.OutlinedButton</item>
-        <item name="materialButtonTextStyle">@style/Widget.Material3.Button.TextButton</item>
-
-        <!-- 图标按钮样式 -->
-        <item name="materialIconButtonStyle">@style/Widget.Material3.IconButton</item>
-        <item name="materialIconButtonFilledStyle">@style/Widget.Material3.IconButton.Filled</item>
-        <item name="materialIconButtonFilledTonalStyle">@style/Widget.Material3.IconButton.FilledTonal</item>
-        <item name="materialIconButtonOutlinedStyle">@style/Widget.Material3.IconButton.Outlined</item>
-
-        <!-- 文本输入样式 -->
-        <item name="textInputStyle">@style/Widget.Material3.TextInputLayout.FilledBox</item>
     </style>
 
-    <style name="Theme.SimpleBrowser.AppBarOverlay" parent="ThemeOverlay.Material3.Dark">
-        <item name="android:textColorPrimary">@color/on_primary</item>
-        <item name="android:textColorSecondary">@color/on_primary_variant</item>
-    </style>
 
-    <!-- 夜间模式主题 -->
-    <style name="Theme.SimpleBrowser.Night" parent="Theme.Material3.DynamicColors.DayNight">
-        <!-- 夜间模式使用相同的动态取色，系统会自动适配 -->
-    </style>
 
 </resources>
