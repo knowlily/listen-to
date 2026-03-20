@@ -27,6 +27,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.color.DynamicColors
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
@@ -42,6 +43,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 应用动态取色（Android 12+）
+        DynamicColors.applyToActivityIfAvailable(this)
 
         // 应用保存的主题设置
         val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
@@ -106,6 +110,7 @@ class MainActivity : AppCompatActivity() {
         val webSettings = webView.settings
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
+        webSettings.databaseEnabled = true
         webSettings.loadWithOverviewMode = true
         webSettings.useWideViewPort = true
         webSettings.setSupportZoom(true)
@@ -114,7 +119,15 @@ class MainActivity : AppCompatActivity() {
         webSettings.allowFileAccess = true
         webSettings.allowContentAccess = true
         webSettings.allowUniversalAccessFromFileURLs = true
+        webSettings.allowFileAccessFromFileURLs = true
         webSettings.mixedContentMode = 0  // MIXED_CONTENT_ALWAYS_ALLOW
+
+        // 设置缓存
+        webSettings.cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
+
+        // 设置用户代理
+        val defaultUserAgent = webSettings.userAgentString
+        webSettings.userAgentString = "$defaultUserAgent SimpleBrowser/1.1"
 
         // 设置WebView客户端
         webView.webViewClient = object : WebViewClient() {
@@ -180,9 +193,23 @@ class MainActivity : AppCompatActivity() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 return try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        // 拦截file://协议，阻止加载本地文件
                         val url = request?.url?.toString() ?: ""
-                        url.startsWith("file://")
+                        val isForMainFrame = request?.isForMainFrame ?: false
+
+                        Log.d(TAG, "shouldOverrideUrlLoading (新API): url=$url, isForMainFrame=$isForMainFrame")
+
+                        // 只拦截file://协议，其他URL都在WebView中打开
+                        if (url.startsWith("file://")) {
+                            Log.w(TAG, "阻止加载本地文件: $url")
+                            return true
+                        }
+
+                        // 对于主框架请求，确保在WebView中打开
+                        if (isForMainFrame) {
+                            Log.d(TAG, "允许WebView加载主框架URL: $url")
+                        }
+
+                        false
                     } else {
                         false
                     }
@@ -195,8 +222,16 @@ class MainActivity : AppCompatActivity() {
             @Suppress("DEPRECATION")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                 return try {
-                    // 拦截file://协议，阻止加载本地文件
-                    url != null && url.startsWith("file://")
+                    val urlStr = url ?: ""
+                    Log.d(TAG, "shouldOverrideUrlLoading (旧API): url=$urlStr")
+
+                    // 只拦截file://协议，其他URL都在WebView中打开
+                    if (urlStr.startsWith("file://")) {
+                        Log.w(TAG, "阻止加载本地文件: $urlStr")
+                        return true
+                    }
+
+                    false
                 } catch (e: Exception) {
                     Log.e(TAG, "shouldOverrideUrlLoading失败: ${e.message}", e)
                     false
@@ -298,16 +333,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupDynamicColors() {
-        // 动态取色已通过主题自动启用
+        // 动态取色已在onCreate中通过DynamicColors.applyToActivityIfAvailable启用
         // 这里可以添加其他动态取色相关的配置
+
+        // 检查动态取色是否可用
+        val isDynamicColorAvailable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        Log.d(TAG, "动态取色可用: $isDynamicColorAvailable")
+
+        // 可以根据需要添加额外的动态取色配置
     }
 
     private fun loadUrl(url: String) {
-        if (!isNetworkAvailable()) {
-            showError(getString(R.string.no_internet))
-            return
-        }
-
         // 检查URL是否为空或仅包含空白字符
         val trimmedUrl = url.trim()
         if (trimmedUrl.isEmpty()) {
@@ -315,25 +351,46 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        // 检查网络连接
+        if (!isNetworkAvailable()) {
+            showError(getString(R.string.no_internet))
+            return
+        }
+
         try {
             var processedUrl = trimmedUrl
-            // 添加协议前缀如果缺失
-            if (!processedUrl.startsWith("http://") && !processedUrl.startsWith("https://")) {
-                processedUrl = "https://$processedUrl"
+
+            // 处理特殊URL
+            when {
+                // 如果已经是完整的URL，保持不变
+                trimmedUrl.startsWith("http://") || trimmedUrl.startsWith("https://") -> {
+                    processedUrl = trimmedUrl
+                }
+                // 处理www开头的地址
+                trimmedUrl.startsWith("www.") -> {
+                    processedUrl = "https://$trimmedUrl"
+                }
+                // 处理IP地址或localhost
+                trimmedUrl.matches(Regex("^\\d+\\.\\d+\\.\\d+\\.\\d+.*")) || trimmedUrl.startsWith("localhost") -> {
+                    processedUrl = "http://$trimmedUrl"
+                }
+                // 默认添加https://前缀
+                else -> {
+                    processedUrl = "https://$trimmedUrl"
+                }
             }
 
-            // 注释掉严格的URL格式验证，让WebView自己处理无效URL
-            // if (!android.util.Patterns.WEB_URL.matcher(processedUrl).matches()) {
-            //     showError("网址格式无效")
-            //     return
-            // }
+            Log.d(TAG, "开始加载URL: $processedUrl")
 
+            // 加载网页
             webView.loadUrl(processedUrl)
             etUrl.clearFocus()
-            Log.d(TAG, "加载URL: $processedUrl")
+            showLoading(true)
+
         } catch (e: Exception) {
             Log.e(TAG, "加载URL失败: ${e.message}", e)
             showError("加载页面时出错: ${e.localizedMessage}")
+            showLoading(false)
         }
     }
 
