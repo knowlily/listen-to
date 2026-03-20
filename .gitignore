@@ -100,3 +100,6 @@ temp_jdk/
 
 # Temporary installation script
 install_sdk.bat
+
+# Android SDK local configuration
+local.properties
