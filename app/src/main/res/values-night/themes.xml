@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 夜间模式主题 -->
-    <style name="Theme.SimpleBrowser" parent="Theme.MaterialComponents.DayNight">
+    <style name="Theme.SimpleBrowser" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- 动态取色会自动适配夜间模式 -->
         <!-- 如果需要覆盖特定颜色，可以在这里设置 -->
         <item name="colorPrimary">@color/md_theme_dark_primary</item>

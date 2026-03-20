@@ -1,6 +1,7 @@
 package com.example.simplebrowser
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -19,6 +20,7 @@ import android.widget.TextView
 import android.util.Log
 import android.util.Patterns
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
@@ -33,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnForward: MaterialButton
     private lateinit var btnRefresh: MaterialButton
     private lateinit var bottomNavigationView: BottomNavigationView
+    private lateinit var toolbar: MaterialToolbar
     private lateinit var progressBar: com.google.android.material.progressindicator.LinearProgressIndicator
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +59,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
+        toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
         webView = findViewById(R.id.webView)
         etUrl = findViewById(R.id.etUrl)
         btnBack = findViewById(R.id.btnBack)
@@ -162,10 +168,8 @@ class MainActivity : AppCompatActivity() {
 
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                 return try {
-                    if (url != null && !url.startsWith("file://")) {
-                        view?.loadUrl(url)
-                    }
-                    true
+                    // 拦截file://协议，阻止加载本地文件
+                    url != null && url.startsWith("file://")
                 } catch (e: Exception) {
                     Log.e(TAG, "shouldOverrideUrlLoading失败: ${e.message}", e)
                     false
@@ -254,7 +258,8 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_settings -> {
-                    showSnackbar(getString(R.string.settings))
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    startActivity(intent)
                     true
                 }
                 else -> false
@@ -287,11 +292,11 @@ class MainActivity : AppCompatActivity() {
                 processedUrl = "https://$processedUrl"
             }
 
-            // 验证URL格式
-            if (!android.util.Patterns.WEB_URL.matcher(processedUrl).matches()) {
-                showError("网址格式无效")
-                return
-            }
+            // 注释掉严格的URL格式验证，让WebView自己处理无效URL
+            // if (!android.util.Patterns.WEB_URL.matcher(processedUrl).matches()) {
+            //     showError("网址格式无效")
+            //     return
+            // }
 
             webView.loadUrl(processedUrl)
             etUrl.clearFocus()
