@@ -2,6 +2,7 @@ package com.example.simplebrowser
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -20,6 +21,7 @@ import android.widget.TextView
 import android.util.Log
 import android.util.Patterns
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
@@ -40,6 +42,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 应用保存的主题设置
+        val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val savedTheme = sharedPref.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(savedTheme)
+
         setContentView(R.layout.activity_main)
 
         // 初始化视图
@@ -61,6 +69,7 @@ class MainActivity : AppCompatActivity() {
     private fun initViews() {
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)  // 隐藏默认标题
 
         webView = findViewById(R.id.webView)
         etUrl = findViewById(R.id.etUrl)
@@ -104,6 +113,8 @@ class MainActivity : AppCompatActivity() {
         webSettings.displayZoomControls = false
         webSettings.allowFileAccess = true
         webSettings.allowContentAccess = true
+        webSettings.allowUniversalAccessFromFileURLs = true
+        webSettings.mixedContentMode = 0  // MIXED_CONTENT_ALWAYS_ALLOW
 
         // 设置WebView客户端
         webView.webViewClient = object : WebViewClient() {
@@ -166,6 +177,22 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                return try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        // 拦截file://协议，阻止加载本地文件
+                        val url = request?.url?.toString() ?: ""
+                        url.startsWith("file://")
+                    } else {
+                        false
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "shouldOverrideUrlLoading失败: ${e.message}", e)
+                    false
+                }
+            }
+
+            @Suppress("DEPRECATION")
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                 return try {
                     // 拦截file://协议，阻止加载本地文件
@@ -189,6 +216,9 @@ class MainActivity : AppCompatActivity() {
                 title?.let {
                     if (it.isNotEmpty() && it != "about:blank") {
                         supportActionBar?.title = it
+                        supportActionBar?.setDisplayShowTitleEnabled(true)
+                    } else {
+                        supportActionBar?.setDisplayShowTitleEnabled(false)
                     }
                 }
             }

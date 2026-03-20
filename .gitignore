@@ -103,3 +103,8 @@ install_sdk.bat
 
 # Android SDK local configuration
 local.properties
+
+# Keystore files
+*.jks
+*.keystore
+*.properties
