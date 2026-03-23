@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.color.DynamicColors
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
@@ -19,6 +20,15 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 应用动态取色（Android 12+）
+        DynamicColors.applyToActivityIfAvailable(this)
+
+        // 应用保存的主题设置
+        val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val savedTheme = sharedPref.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        AppCompatDelegate.setDefaultNightMode(savedTheme)
+
         setContentView(R.layout.activity_settings)
 
         initViews()

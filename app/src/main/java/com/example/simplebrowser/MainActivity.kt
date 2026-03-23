@@ -28,6 +28,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.color.DynamicColors
+import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
@@ -146,6 +147,13 @@ class MainActivity : AppCompatActivity() {
                 showLoading(false)
                 progressBar.visibility = View.GONE
                 progressBar.progress = 0
+
+                // 保存历史记录
+                url?.let {
+                    if (it.isNotEmpty() && it != "about:blank") {
+                        saveHistory(it)
+                    }
+                }
             }
 
             override fun onReceivedError(
@@ -319,7 +327,8 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_history -> {
-                    showSnackbar(getString(R.string.history))
+                    val intent = Intent(this, HistoryActivity::class.java)
+                    startActivity(intent)
                     true
                 }
                 R.id.navigation_settings -> {
@@ -389,7 +398,19 @@ class MainActivity : AppCompatActivity() {
 
         } catch (e: Exception) {
             Log.e(TAG, "加载URL失败: ${e.message}", e)
-            showError("加载页面时出错: ${e.localizedMessage}")
+            e.printStackTrace()
+
+            // 提供更具体的错误信息
+            val errorMsg = when {
+                e is android.webkit.WebResourceError -> "网页资源错误: ${e.description}"
+                e is java.net.UnknownHostException -> "无法找到服务器，请检查网络连接"
+                e is java.net.SocketTimeoutException -> "连接超时，请重试"
+                e is javax.net.ssl.SSLHandshakeException -> "安全连接失败，请检查日期和时间设置"
+                e is java.io.IOException -> "网络错误: ${e.message}"
+                else -> "加载页面时出错: ${e.localizedMessage ?: "未知错误"}"
+            }
+
+            showError(errorMsg)
             showLoading(false)
         }
     }
@@ -418,11 +439,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLoading(loading: Boolean) {
-        btnRefresh.icon = if (loading) {
-            // 加载时显示旋转图标
-            resources.getDrawable(R.drawable.ic_loading, theme)
+        // 始终使用刷新图标，避免动画drawable问题
+        btnRefresh.icon = ContextCompat.getDrawable(this, R.drawable.ic_refresh)
+
+        // 可以添加旋转动画，但暂时简化
+        if (loading) {
+            // 未来可以添加旋转动画
+            btnRefresh.rotation = 0f
+            btnRefresh.animate().rotationBy(360f).setDuration(1000).withEndAction {
+                if (loading) {
+                    btnRefresh.animate().rotationBy(360f).setDuration(1000).start()
+                }
+            }.start()
         } else {
-            resources.getDrawable(R.drawable.ic_refresh, theme)
+            btnRefresh.animate().cancel()
+            btnRefresh.rotation = 0f
         }
     }
 
@@ -440,6 +471,23 @@ class MainActivity : AppCompatActivity() {
             message,
             Snackbar.LENGTH_SHORT
         ).show()
+    }
+
+    private fun saveHistory(url: String) {
+        try {
+            val timestamp = System.currentTimeMillis()
+            val sharedPref = getSharedPreferences("browser_history", MODE_PRIVATE)
+
+            // 使用时间戳作为key，确保唯一性
+            with(sharedPref.edit()) {
+                putString(timestamp.toString(), url)
+                apply()
+            }
+
+            Log.d(TAG, "保存历史记录: $url, 时间戳: $timestamp")
+        } catch (e: Exception) {
+            Log.e(TAG, "保存历史记录失败: ${e.message}", e)
+        }
     }
 
     override fun onBackPressed() {
