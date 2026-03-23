@@ -112,6 +112,8 @@ class MainActivity : AppCompatActivity() {
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
         webSettings.databaseEnabled = true
+        webSettings.setSupportMultipleWindows(true)
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true)
         webSettings.loadWithOverviewMode = true
         webSettings.useWideViewPort = true
         webSettings.setSupportZoom(true)
@@ -206,18 +208,22 @@ class MainActivity : AppCompatActivity() {
 
                         Log.d(TAG, "shouldOverrideUrlLoading (新API): url=$url, isForMainFrame=$isForMainFrame")
 
-                        // 只拦截file://协议，其他URL都在WebView中打开
+                        // 拦截file://协议，阻止加载本地文件
                         if (url.startsWith("file://")) {
                             Log.w(TAG, "阻止加载本地文件: $url")
                             return true
                         }
 
-                        // 对于主框架请求，确保在WebView中打开
-                        if (isForMainFrame) {
-                            Log.d(TAG, "允许WebView加载主框架URL: $url")
+                        // 对于tel:、mailto:等特殊协议，允许系统处理
+                        if (url.startsWith("tel:") || url.startsWith("mailto:") ||
+                            url.startsWith("sms:") || url.startsWith("geo:")) {
+                            Log.d(TAG, "允许系统处理特殊协议: $url")
+                            return false
                         }
 
-                        false
+                        // 其他所有http/https链接都在WebView中打开
+                        Log.d(TAG, "在WebView中加载URL: $url")
+                        return false
                     } else {
                         false
                     }
@@ -233,13 +239,22 @@ class MainActivity : AppCompatActivity() {
                     val urlStr = url ?: ""
                     Log.d(TAG, "shouldOverrideUrlLoading (旧API): url=$urlStr")
 
-                    // 只拦截file://协议，其他URL都在WebView中打开
+                    // 拦截file://协议，阻止加载本地文件
                     if (urlStr.startsWith("file://")) {
                         Log.w(TAG, "阻止加载本地文件: $urlStr")
                         return true
                     }
 
-                    false
+                    // 对于tel:、mailto:等特殊协议，允许系统处理
+                    if (urlStr.startsWith("tel:") || urlStr.startsWith("mailto:") ||
+                        urlStr.startsWith("sms:") || urlStr.startsWith("geo:")) {
+                        Log.d(TAG, "允许系统处理特殊协议: $urlStr")
+                        return false
+                    }
+
+                    // 其他所有http/https链接都在WebView中打开
+                    Log.d(TAG, "在WebView中加载URL: $urlStr")
+                    return false
                 } catch (e: Exception) {
                     Log.e(TAG, "shouldOverrideUrlLoading失败: ${e.message}", e)
                     false
@@ -264,6 +279,27 @@ class MainActivity : AppCompatActivity() {
                         supportActionBar?.setDisplayShowTitleEnabled(false)
                     }
                 }
+            }
+
+            override fun onCreateWindow(
+                view: WebView?,
+                isDialog: Boolean,
+                isUserGesture: Boolean,
+                resultMsg: android.os.Message?
+            ): Boolean {
+                // 允许新窗口在当前WebView中打开
+                val newWebView = WebView(view?.context ?: this@MainActivity)
+                newWebView.webViewClient = view?.webViewClient ?: webView.webViewClient
+                newWebView.webChromeClient = view?.webChromeClient ?: webView.webChromeClient
+                val transport = resultMsg?.obj as android.webkit.WebView.WebViewTransport
+                transport.webView = newWebView
+                resultMsg.sendToTarget()
+                return true
+            }
+
+            override fun onCloseWindow(window: WebView?) {
+                // 处理窗口关闭
+                super.onCloseWindow(window)
             }
         }
 
