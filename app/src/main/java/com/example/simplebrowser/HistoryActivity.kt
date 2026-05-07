@@ -9,8 +9,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.color.DynamicColors
 import androidx.appcompat.app.AppCompatDelegate
+import com.google.android.material.snackbar.Snackbar
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -18,6 +20,7 @@ import java.util.Locale
 class HistoryActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
     private lateinit var recyclerView: RecyclerView
+    private lateinit var btnClearHistory: MaterialButton
     private lateinit var adapter: HistoryAdapter
     private val historyList = mutableListOf<HistoryItem>()
 
@@ -36,6 +39,7 @@ class HistoryActivity : AppCompatActivity() {
 
         initViews()
         setupToolbar()
+        setupButtonListeners()
         loadHistory()
         setupRecyclerView()
     }
@@ -43,6 +47,7 @@ class HistoryActivity : AppCompatActivity() {
     private fun initViews() {
         toolbar = findViewById(R.id.toolbar)
         recyclerView = findViewById(R.id.recyclerView)
+        btnClearHistory = findViewById(R.id.btnClearHistory)
     }
 
     private fun setupToolbar() {
@@ -51,6 +56,35 @@ class HistoryActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowHomeEnabled(true)
         toolbar.setNavigationOnClickListener {
             onBackPressed()
+        }
+    }
+
+    private fun setupButtonListeners() {
+        btnClearHistory.setOnClickListener {
+            clearHistory()
+        }
+    }
+
+    private fun clearHistory() {
+        try {
+            val sharedPref = getSharedPreferences("browser_history", MODE_PRIVATE)
+            sharedPref.edit().clear().apply()
+
+            // 重新加载历史记录（会显示空状态）
+            loadHistory()
+
+            Snackbar.make(
+                findViewById(android.R.id.content),
+                "历史记录已清除",
+                Snackbar.LENGTH_SHORT
+            ).show()
+
+        } catch (e: Exception) {
+            Snackbar.make(
+                findViewById(android.R.id.content),
+                "清除历史记录失败: ${e.localizedMessage}",
+                Snackbar.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -63,7 +97,12 @@ class HistoryActivity : AppCompatActivity() {
 
         historyEntries.forEach { (timestamp, url) ->
             if (url is String) {
-                historyList.add(HistoryItem(url, timestamp.toLong()))
+                val ts = try {
+                    timestamp.toLong()
+                } catch (e: NumberFormatException) {
+                    System.currentTimeMillis()
+                }
+                historyList.add(HistoryItem(url, ts))
             }
         }
 
@@ -77,6 +116,11 @@ class HistoryActivity : AppCompatActivity() {
         } else {
             findViewById<TextView>(R.id.tvEmptyState).visibility = View.GONE
             recyclerView.visibility = View.VISIBLE
+        }
+
+        // 如果adapter已初始化，通知数据更新
+        if (::adapter.isInitialized) {
+            adapter.notifyDataSetChanged()
         }
     }
 

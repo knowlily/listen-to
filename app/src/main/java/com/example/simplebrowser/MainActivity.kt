@@ -8,7 +8,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
-import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.webkit.WebChromeClient
@@ -16,10 +15,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.EditText
-import android.widget.TextView
 import android.util.Log
-import android.util.Patterns
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.appbar.MaterialToolbar
@@ -41,6 +37,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var toolbar: MaterialToolbar
     private lateinit var progressBar: com.google.android.material.progressindicator.LinearProgressIndicator
+    private lateinit var cardAddressBar: com.google.android.material.card.MaterialCardView
+    private lateinit var popupContainer: android.widget.FrameLayout
+    private lateinit var popupWebViewContainer: android.widget.FrameLayout
+    private var isNavigationHidden = false
+    private var lastScrollY = 0
+    private val scrollThreshold = 100 // 滚动阈值，单位像素
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,6 +85,15 @@ class MainActivity : AppCompatActivity() {
         btnRefresh = findViewById(R.id.btnRefresh)
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         progressBar = findViewById(R.id.progressBar)
+        cardAddressBar = findViewById(R.id.cardAddressBar)
+        popupContainer = findViewById(R.id.popupContainer)
+        popupWebViewContainer = findViewById(R.id.popupWebViewContainer)
+
+        // 设置弹窗工具栏返回按钮
+        val popupToolbar = findViewById<MaterialToolbar>(R.id.popupToolbar)
+        popupToolbar.setNavigationOnClickListener {
+            closePopupWindow()
+        }
     }
 
     private fun isNetworkAvailable(): Boolean {
@@ -119,18 +130,31 @@ class MainActivity : AppCompatActivity() {
         webSettings.setSupportZoom(true)
         webSettings.builtInZoomControls = true
         webSettings.displayZoomControls = false
-        webSettings.allowFileAccess = true
+        webSettings.allowFileAccess = false
         webSettings.allowContentAccess = true
-        webSettings.allowUniversalAccessFromFileURLs = true
-        webSettings.allowFileAccessFromFileURLs = true
-        webSettings.mixedContentMode = 0  // MIXED_CONTENT_ALWAYS_ALLOW
+        webSettings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
 
         // 设置缓存
         webSettings.cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
 
         // 设置用户代理
         val defaultUserAgent = webSettings.userAgentString
-        webSettings.userAgentString = "$defaultUserAgent SimpleBrowser/1.1"
+        val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val userAgentMode = sharedPref.getString("user_agent_mode", "mobile") ?: "mobile"
+
+        val userAgent = when (userAgentMode) {
+            "pc" -> {
+                // 桌面版Chrome用户代理（Windows）
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SimpleBrowser/1.5"
+            }
+            else -> {
+                // 手机模式：使用默认Android用户代理，添加应用标识
+                "$defaultUserAgent SimpleBrowser/1.5"
+            }
+        }
+
+        webSettings.userAgentString = userAgent
+        Log.d(TAG, "设置用户代理模式: $userAgentMode, 用户代理: $userAgent")
 
         // 设置WebView客户端
         webView.webViewClient = object : WebViewClient() {
@@ -287,24 +311,111 @@ class MainActivity : AppCompatActivity() {
                 isUserGesture: Boolean,
                 resultMsg: android.os.Message?
             ): Boolean {
-                // 允许新窗口在当前WebView中打开
-                val newWebView = WebView(view?.context ?: this@MainActivity)
-                newWebView.webViewClient = view?.webViewClient ?: webView.webViewClient
-                newWebView.webChromeClient = view?.webChromeClient ?: webView.webChromeClient
-                val transport = resultMsg?.obj as android.webkit.WebView.WebViewTransport
-                transport.webView = newWebView
-                resultMsg.sendToTarget()
+                // 在弹窗容器中创建新的WebView
+                val ctx = view?.context ?: this@MainActivity
+                val newWebView = WebView(ctx).apply {
+                    layoutParams = android.widget.FrameLayout.LayoutParams(
+                        android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+                    )
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+                    settings.setSupportMultipleWindows(false)
+                    webViewClient = object : WebViewClient() {
+                        override fun onPageFinished(wv: WebView?, url: String?) {
+                            super.onPageFinished(wv, url)
+                            url?.let {
+                                if (it.isNotEmpty() && it != "about:blank") {
+                                    saveHistory(it)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                popupWebViewContainer.removeAllViews()
+                popupWebViewContainer.addView(newWebView)
+                popupContainer.visibility = View.VISIBLE
+
+                val transport = resultMsg?.obj as? android.webkit.WebView.WebViewTransport
+                transport?.webView = newWebView
+                resultMsg?.sendToTarget()
                 return true
             }
 
             override fun onCloseWindow(window: WebView?) {
-                // 处理窗口关闭
-                super.onCloseWindow(window)
+                closePopupWindow()
             }
+        }
+
+        // 设置滚动监听，实现自动隐藏导航栏
+        webView.setOnScrollChangeListener { _, scrollX, scrollY, oldScrollX, oldScrollY ->
+            handleScroll(scrollY, oldScrollY)
         }
 
         // 加载默认主页
         loadUrl("https://www.google.com")
+    }
+
+    private fun handleScroll(scrollY: Int, oldScrollY: Int) {
+        val scrollingDown = scrollY > oldScrollY
+        val scrollingUp = scrollY < oldScrollY
+        val scrollDelta = Math.abs(scrollY - oldScrollY)
+
+        // 只有当滚动距离超过阈值时才处理
+        if (scrollDelta < scrollThreshold) {
+            return
+        }
+
+        if (scrollingDown && scrollY > scrollThreshold && !isNavigationHidden) {
+            // 向下滚动，隐藏导航栏（更多阅读空间）
+            hideNavigation()
+        } else if (scrollingUp && isNavigationHidden) {
+            // 向上滚动，显示导航栏（用户想导航）
+            showNavigation()
+        }
+
+        lastScrollY = scrollY
+    }
+
+    private fun hideNavigation() {
+        if (!isNavigationHidden) {
+            cardAddressBar.animate()
+                .translationY(-cardAddressBar.height.toFloat())
+                .setDuration(300)
+                .withEndAction {
+                    cardAddressBar.visibility = View.GONE
+                }
+                .start()
+
+            bottomNavigationView.animate()
+                .translationY(bottomNavigationView.height.toFloat())
+                .setDuration(300)
+                .withEndAction {
+                    bottomNavigationView.visibility = View.GONE
+                }
+                .start()
+
+            isNavigationHidden = true
+        }
+    }
+
+    private fun showNavigation() {
+        if (isNavigationHidden) {
+            cardAddressBar.visibility = View.VISIBLE
+            cardAddressBar.animate()
+                .translationY(0f)
+                .setDuration(300)
+                .start()
+
+            bottomNavigationView.visibility = View.VISIBLE
+            bottomNavigationView.animate()
+                .translationY(0f)
+                .setDuration(300)
+                .start()
+
+            isNavigationHidden = false
+        }
     }
 
     private fun setupButtonListeners() {
@@ -329,9 +440,9 @@ class MainActivity : AppCompatActivity() {
 
         // 地址栏输入监听
         etUrl.setOnEditorActionListener { _, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_GO ||
-                (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)
-            ) {
+            if (actionId == EditorInfo.IME_ACTION_GO) {
+                // Only handle IME action — physical Enter keys also trigger IME_ACTION_GO,
+                // so we skip the raw KeyEvent to avoid double-loadUrl
                 val url = etUrl.text.toString().trim()
                 loadUrl(url)
                 true
@@ -340,15 +451,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 地址栏焦点变化监听
-        etUrl.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                val url = etUrl.text.toString().trim()
-                if (url.isNotEmpty()) {
-                    loadUrl(url)
-                }
-            }
-        }
     }
 
     private fun setupBottomNavigation() {
@@ -359,7 +461,13 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_bookmarks -> {
-                    showSnackbar(getString(R.string.bookmarks))
+                    val intent = Intent(this, BookmarksActivity::class.java)
+                    // 传递当前URL，用于添加书签
+                    val currentUrl = webView.url ?: etUrl.text.toString()
+                    if (currentUrl.isNotEmpty() && currentUrl != "about:blank") {
+                        intent.putExtra("url", currentUrl)
+                    }
+                    startActivity(intent)
                     true
                 }
                 R.id.navigation_history -> {
@@ -454,6 +562,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateUrl(url: String?) {
         url?.let {
             etUrl.setText(it)
+            etUrl.setSelection(it.length)
         }
     }
 
@@ -527,10 +636,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (webView.canGoBack()) {
+        if (popupContainer.visibility == View.VISIBLE) {
+            closePopupWindow()
+        } else if (webView.canGoBack()) {
             webView.goBack()
         } else {
             super.onBackPressed()
         }
+    }
+
+    private fun closePopupWindow() {
+        popupContainer.visibility = View.GONE
+        popupWebViewContainer.removeAllViews()
     }
 }

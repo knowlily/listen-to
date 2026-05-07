@@ -17,6 +17,8 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var btnThemeLight: MaterialButton
     private lateinit var btnThemeDark: MaterialButton
     private lateinit var btnThemeSystem: MaterialButton
+    private lateinit var btnUserAgentPC: MaterialButton
+    private lateinit var btnUserAgentMobile: MaterialButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +44,8 @@ class SettingsActivity : AppCompatActivity() {
         btnThemeLight = findViewById(R.id.btnThemeLight)
         btnThemeDark = findViewById(R.id.btnThemeDark)
         btnThemeSystem = findViewById(R.id.btnThemeSystem)
+        btnUserAgentPC = findViewById(R.id.btnUserAgentPC)
+        btnUserAgentMobile = findViewById(R.id.btnUserAgentMobile)
     }
 
     private fun setupToolbar() {
@@ -68,6 +72,14 @@ class SettingsActivity : AppCompatActivity() {
 
         btnThemeSystem.setOnClickListener {
             setThemeMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        }
+
+        btnUserAgentPC.setOnClickListener {
+            setUserAgentMode("pc")
+        }
+
+        btnUserAgentMobile.setOnClickListener {
+            setUserAgentMode("mobile")
         }
     }
 
@@ -120,6 +132,28 @@ class SettingsActivity : AppCompatActivity() {
             AppCompatDelegate.MODE_NIGHT_YES -> "已切换到深色主题"
             AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM -> "已设置为跟随系统"
             else -> "主题已更新"
+        }
+
+        Snackbar.make(
+            findViewById(android.R.id.content),
+            message,
+            Snackbar.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun setUserAgentMode(mode: String) {
+        // 保存用户选择
+        val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("user_agent_mode", mode)
+            apply()
+        }
+
+        // 显示确认消息
+        val message = when (mode) {
+            "pc" -> "已切换到电脑模式"
+            "mobile" -> "已切换到手机模式"
+            else -> "浏览器标识已更新"
         }
 
         Snackbar.make(

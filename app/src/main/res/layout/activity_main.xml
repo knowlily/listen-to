@@ -27,6 +27,7 @@
 
         <!-- 地址栏和控件 -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardAddressBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -109,17 +110,11 @@
             app:indicatorColor="@color/primary" />
 
         <!-- WebView 区域 -->
-        <androidx.core.widget.NestedScrollView
+        <WebView
+            android:id="@+id/webView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
-
-            <WebView
-                android:id="@+id/webView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-        </androidx.core.widget.NestedScrollView>
+            android:layout_weight="1" />
 
         <!-- 底部导航栏 -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -129,5 +124,29 @@
             app:menu="@menu/bottom_nav_menu" />
 
     </LinearLayout>
+
+    <!-- 弹窗容器，用于显示WebView弹窗（window.open等） -->
+    <FrameLayout
+        android:id="@+id/popupContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?attr/colorSurface"
+        android:visibility="gone">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/popupToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:layout_gravity="top"
+            app:navigationIcon="@drawable/ic_back"
+            app:title="弹窗" />
+
+        <FrameLayout
+            android:id="@+id/popupWebViewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="?attr/actionBarSize" />
+
+    </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
