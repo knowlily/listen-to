@@ -5,9 +5,31 @@
 GitHub Releases: https://github.com/knowlily/listen-to/releases
 
 ## 当前版本
-- **最新版本**: 1.1 (versionCode 2)
-- **最新标签**: v1.5
-- **构建日期**: 2026-03-20
+- **最新版本**: 1.6 (versionCode 7)
+- **构建日期**: 2026-05-07
+
+## [1.6.0] - 2026-05-07
+
+### 新增
+- 添加书签管理功能（BookmarksActivity），支持添加、查看、清除书签
+- 添加用户代理（UA）切换功能，支持电脑模式和手机模式
+- 添加滚动时自动隐藏/显示导航栏，提供更大阅读空间
+- 添加弹窗窗口支持（window.open），在覆盖层中显示弹窗内容
+- 添加历史记录清除按钮
+
+### 修复
+- 修复地址栏按回车键时重复加载 URL 的问题（移除冗余 KeyListener）
+- 修复地址栏失去焦点时意外触发页面跳转的问题
+- 修复 WebView 混合内容安全漏洞（MIXED_CONTENT_ALWAYS_ALLOW → NEVER_ALLOW）
+- 修复历史记录/书签列表 RecyclerView 在 NestedScrollView 中滚动性能问题
+- 修复设置页面版本号（1.4）与 build.gradle（1.6）不一致的问题
+- 修复 CI 工作流中 gradlew 无执行权限导致 exit code 126 的问题
+- 禁止 WebView 访问本地文件（file:// 协议），增强安全性
+
+### 改进
+- 优化地址栏 URL 加载后光标定位到末尾
+- 优化历史记录时间戳解析，增加异常容错
+- 优化用户代理字符串，PC 模式使用完整桌面端 Chrome UA
 
 ## [1.1.0] - 2026-03-20
 
