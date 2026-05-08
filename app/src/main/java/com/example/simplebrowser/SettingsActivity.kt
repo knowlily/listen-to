@@ -15,6 +15,8 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.color.DynamicColors
+import com.google.android.material.switchmaterial.SwitchMaterial
+import com.example.simplebrowser.plugin.PluginManager
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
@@ -53,6 +55,7 @@ class SettingsActivity : AppCompatActivity() {
         setupToolbar()
         applyAccentColor()
         setupButtonListeners()
+        setupPluginList()
         updateButtonStates()
     }
 
@@ -135,6 +138,59 @@ class SettingsActivity : AppCompatActivity() {
 
         applyButton(btnUserAgentPC, activeMode == "pc")
         applyButton(btnUserAgentMobile, activeMode == "mobile")
+    }
+
+    private fun setupPluginList() {
+        val container = findViewById<android.widget.LinearLayout>(R.id.pluginContainer)
+        val pm = PluginManager.getInstance(this)
+
+        for (plugin in pm.getPlugins()) {
+            val row = android.widget.LinearLayout(this).apply {
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = if (container.childCount > 0) dpToPx(8) else 0
+                }
+                gravity = android.view.Gravity.CENTER_VERTICAL
+            }
+
+            val textBlock = android.widget.LinearLayout(this).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    0,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
+            }
+
+            val nameView = TextView(this).apply {
+                text = plugin.name
+                textSize = 14f
+                setTextColor(ContextCompat.getColor(context, R.color.on_surface))
+            }
+
+            val descView = TextView(this).apply {
+                text = plugin.description
+                textSize = 12f
+                setTextColor(ContextCompat.getColor(context, R.color.on_surface_variant))
+            }
+
+            textBlock.addView(nameView)
+            textBlock.addView(descView)
+
+            val toggle = SwitchMaterial(this).apply {
+                isChecked = plugin.isEnabled
+                setOnCheckedChangeListener { _, enabled ->
+                    if (enabled) pm.enablePlugin(plugin.id) else pm.disablePlugin(plugin.id)
+                }
+            }
+
+            row.addView(textBlock)
+            row.addView(toggle)
+            container.addView(row)
+        }
     }
 
     private fun dpToPx(dp: Int): Int {

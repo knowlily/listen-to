@@ -26,6 +26,9 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.color.DynamicColors
 import androidx.core.content.ContextCompat
+import com.example.simplebrowser.plugin.PluginManager
+import com.example.simplebrowser.plugin.AdBlockerPlugin
+import com.example.simplebrowser.plugin.DarkModePlugin
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
@@ -46,6 +49,7 @@ class MainActivity : AppCompatActivity() {
     private var isNavigationHidden = false
     private var lastScrollY = 0
     private val scrollThreshold = 100 // 滚动阈值，单位像素
+    private lateinit var pluginManager: PluginManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +69,11 @@ class MainActivity : AppCompatActivity() {
 
         // 应用自定义主题色
         applyAccentColor()
+
+        // 初始化插件系统
+        pluginManager = PluginManager.getInstance(this)
+        pluginManager.registerPlugin(AdBlockerPlugin())
+        pluginManager.registerPlugin(DarkModePlugin())
 
         // 配置WebView
         setupWebView()
@@ -172,6 +181,7 @@ class MainActivity : AppCompatActivity() {
                 showLoading(true)
                 progressBar.visibility = View.VISIBLE
                 progressBar.progress = 0
+                url?.let { pluginManager.notifyPageStarted(view!!, it) }
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -188,6 +198,8 @@ class MainActivity : AppCompatActivity() {
                         saveHistory(it)
                     }
                 }
+                // 通知插件页面加载完成
+                url?.let { view?.let { v -> pluginManager.notifyPageFinished(v, it) } }
             }
 
             override fun onReceivedError(
@@ -253,6 +265,10 @@ class MainActivity : AppCompatActivity() {
                             return false
                         }
 
+                        // 插件处理 URL（可拦截广告等）
+                        val pluginUrl = pluginManager.notifyUrlLoading(url)
+                        if (pluginUrl == "about:blank") return true
+
                         // 其他所有http/https链接都在WebView中打开
                         Log.d(TAG, "在WebView中加载URL: $url")
                         return false
@@ -283,6 +299,10 @@ class MainActivity : AppCompatActivity() {
                         Log.d(TAG, "允许系统处理特殊协议: $urlStr")
                         return false
                     }
+
+                    // 插件处理 URL（可拦截广告等）
+                    val pluginUrl = pluginManager.notifyUrlLoading(urlStr)
+                    if (pluginUrl == "about:blank") return true
 
                     // 其他所有http/https链接都在WebView中打开
                     Log.d(TAG, "在WebView中加载URL: $urlStr")
@@ -559,8 +579,11 @@ class MainActivity : AppCompatActivity() {
 
             Log.d(TAG, "开始加载URL: $processedUrl")
 
+            // 插件处理 URL（可拦截或修改）
+            val finalUrl = pluginManager.notifyUrlLoading(processedUrl)
+
             // 加载网页
-            webView.loadUrl(processedUrl)
+            webView.loadUrl(finalUrl)
             etUrl.clearFocus()
             showLoading(true)
 
