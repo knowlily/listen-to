@@ -42,6 +42,7 @@ class BookmarksActivity : AppCompatActivity() {
 
         initViews()
         setupToolbar()
+        applyAccentColor()
         setupButtonListeners()
         updateCurrentUrlDisplay()
         loadBookmarks()
@@ -205,6 +206,14 @@ class BookmarksActivity : AppCompatActivity() {
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
+    }
+
+    private fun applyAccentColor() {
+        val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val accentColor = sharedPref.getInt("accent_color", 0xFF6750A4.toInt())
+        toolbar.setBackgroundColor(accentColor)
+        findViewById<com.google.android.material.appbar.AppBarLayout>(R.id.appBarLayout)
+            ?.setBackgroundColor(accentColor)
     }
 
     override fun onSupportNavigateUp(): Boolean {

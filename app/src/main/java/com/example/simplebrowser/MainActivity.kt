@@ -38,6 +38,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
     private lateinit var progressBar: com.google.android.material.progressindicator.LinearProgressIndicator
     private lateinit var cardAddressBar: com.google.android.material.card.MaterialCardView
+    private lateinit var cardBottomBar: com.google.android.material.card.MaterialCardView
+    private lateinit var appBarLayout: com.google.android.material.appbar.AppBarLayout
     private lateinit var popupContainer: android.widget.FrameLayout
     private lateinit var popupWebViewContainer: android.widget.FrameLayout
     private var isNavigationHidden = false
@@ -59,6 +61,9 @@ class MainActivity : AppCompatActivity() {
 
         // 初始化视图
         initViews()
+
+        // 应用自定义主题色
+        applyAccentColor()
 
         // 配置WebView
         setupWebView()
@@ -86,6 +91,8 @@ class MainActivity : AppCompatActivity() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         progressBar = findViewById(R.id.progressBar)
         cardAddressBar = findViewById(R.id.cardAddressBar)
+        cardBottomBar = findViewById(R.id.cardBottomBar)
+        appBarLayout = findViewById(R.id.appBarLayout)
         popupContainer = findViewById(R.id.popupContainer)
         popupWebViewContainer = findViewById(R.id.popupWebViewContainer)
 
@@ -380,20 +387,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun hideNavigation() {
         if (!isNavigationHidden) {
-            cardAddressBar.animate()
-                .translationY(-cardAddressBar.height.toFloat())
+            appBarLayout.animate()
+                .translationY(-appBarLayout.height.toFloat())
                 .setDuration(300)
-                .withEndAction {
-                    cardAddressBar.visibility = View.GONE
-                }
+                .withEndAction { appBarLayout.visibility = View.GONE }
                 .start()
 
-            bottomNavigationView.animate()
-                .translationY(bottomNavigationView.height.toFloat())
+            cardAddressBar.animate()
+                .translationY(-cardAddressBar.height.toFloat() - appBarLayout.height)
                 .setDuration(300)
-                .withEndAction {
-                    bottomNavigationView.visibility = View.GONE
-                }
+                .withEndAction { cardAddressBar.visibility = View.GONE }
+                .start()
+
+            cardBottomBar.animate()
+                .translationY(cardBottomBar.height.toFloat())
+                .setDuration(300)
+                .withEndAction { cardBottomBar.visibility = View.GONE }
                 .start()
 
             isNavigationHidden = true
@@ -402,17 +411,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun showNavigation() {
         if (isNavigationHidden) {
-            cardAddressBar.visibility = View.VISIBLE
-            cardAddressBar.animate()
-                .translationY(0f)
-                .setDuration(300)
-                .start()
+            appBarLayout.visibility = View.VISIBLE
+            appBarLayout.animate().translationY(0f).setDuration(300).start()
 
-            bottomNavigationView.visibility = View.VISIBLE
-            bottomNavigationView.animate()
-                .translationY(0f)
-                .setDuration(300)
-                .start()
+            cardAddressBar.visibility = View.VISIBLE
+            cardAddressBar.animate().translationY(0f).setDuration(300).start()
+
+            cardBottomBar.visibility = View.VISIBLE
+            cardBottomBar.animate().translationY(0f).setDuration(300).start()
 
             isNavigationHidden = false
         }
@@ -485,15 +491,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupDynamicColors() {
-        // 动态取色已在onCreate中通过DynamicColors.applyToActivityIfAvailable启用
-        // 这里可以添加其他动态取色相关的配置
+    private fun applyAccentColor() {
+        val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val accentColor = sharedPref.getInt("accent_color", ContextCompat.getColor(this, R.color.md_theme_light_primary))
 
-        // 检查动态取色是否可用
+        toolbar.setBackgroundColor(accentColor)
+        appBarLayout.setBackgroundColor(accentColor)
+        progressBar.setIndicatorColor(accentColor)
+        cardBottomBar.setCardBackgroundColor(accentColor)
+        bottomNavigationView.itemIconTintList = android.content.res.ColorStateList.valueOf(
+            ContextCompat.getColor(this, android.R.color.white))
+        bottomNavigationView.itemTextColor = android.content.res.ColorStateList.valueOf(
+            ContextCompat.getColor(this, android.R.color.white))
+        bottomNavigationView.setBackgroundColor(accentColor)
+    }
+
+    private fun setupDynamicColors() {
         val isDynamicColorAvailable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         Log.d(TAG, "动态取色可用: $isDynamicColorAvailable")
-
-        // 可以根据需要添加额外的动态取色配置
     }
 
     private fun loadUrl(url: String) {

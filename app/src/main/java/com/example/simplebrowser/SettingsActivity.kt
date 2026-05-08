@@ -25,6 +25,17 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var btnUserAgentPC: MaterialButton
     private lateinit var btnUserAgentMobile: MaterialButton
 
+    // 主题色预设按钮
+    private val colorPresets = mapOf(
+        R.id.btnColorPurple to 0xFF6750A4.toInt(),
+        R.id.btnColorBlue to 0xFF1976D2.toInt(),
+        R.id.btnColorTeal to 0xFF00796B.toInt(),
+        R.id.btnColorRed to 0xFFC62828.toInt(),
+        R.id.btnColorOrange to 0xFFE65100.toInt(),
+        R.id.btnColorGreen to 0xFF2E7D32.toInt(),
+        R.id.btnColorPink to 0xFFAD1457.toInt()
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -40,17 +51,40 @@ class SettingsActivity : AppCompatActivity() {
 
         initViews()
         setupToolbar()
+        applyAccentColor()
         setupButtonListeners()
         updateButtonStates()
+    }
+
+    private fun applyAccentColor() {
+        val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val accentColor = sharedPref.getInt("accent_color", 0xFF6750A4.toInt())
+        toolbar.setBackgroundColor(accentColor)
+        findViewById<com.google.android.material.appbar.AppBarLayout>(R.id.appBarLayout)
+            ?.setBackgroundColor(accentColor)
     }
 
     private fun updateButtonStates() {
         val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
         val currentTheme = sharedPref.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         val currentUA = sharedPref.getString("user_agent_mode", "mobile") ?: "mobile"
+        val currentColor = sharedPref.getInt("accent_color", 0xFF6750A4.toInt())
 
         updateThemeButtonStyles(currentTheme)
         updateUAButtonStyles(currentUA)
+        updateColorButtonStates(currentColor)
+    }
+
+    private fun updateColorButtonStates(activeColor: Int) {
+        for ((btnId, color) in colorPresets) {
+            val btn = findViewById<MaterialButton>(btnId)
+            if (color == activeColor) {
+                btn.strokeWidth = dpToPx(3)
+                btn.strokeColor = android.content.res.ColorStateList.valueOf(Color.WHITE)
+            } else {
+                btn.strokeWidth = 0
+            }
+        }
     }
 
     private fun getPrimaryColor(): Int {
@@ -120,6 +154,11 @@ class SettingsActivity : AppCompatActivity() {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/knowlily/listen-to"))
             startActivity(intent)
         }
+
+        // 初始化主题色按钮
+        for (btnId in colorPresets.keys) {
+            findViewById<MaterialButton>(btnId)
+        }
     }
 
     private fun setupToolbar() {
@@ -154,6 +193,13 @@ class SettingsActivity : AppCompatActivity() {
 
         btnUserAgentMobile.setOnClickListener {
             setUserAgentMode("mobile")
+        }
+
+        // 主题色按钮
+        for ((btnId, color) in colorPresets) {
+            findViewById<MaterialButton>(btnId).setOnClickListener {
+                setAccentColor(color)
+            }
         }
     }
 
@@ -213,6 +259,37 @@ class SettingsActivity : AppCompatActivity() {
         Snackbar.make(
             findViewById(android.R.id.content),
             message,
+            Snackbar.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun setAccentColor(color: Int) {
+        val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putInt("accent_color", color)
+            apply()
+        }
+
+        updateColorButtonStates(color)
+
+        // 立即应用到设置页面
+        toolbar.setBackgroundColor(color)
+        findViewById<com.google.android.material.appbar.AppBarLayout>(R.id.appBarLayout)
+            ?.setBackgroundColor(color)
+
+        val colorNames = mapOf(
+            0xFF6750A4.toInt() to "紫色",
+            0xFF1976D2.toInt() to "蓝色",
+            0xFF00796B.toInt() to "青色",
+            0xFFC62828.toInt() to "红色",
+            0xFFE65100.toInt() to "橙色",
+            0xFF2E7D32.toInt() to "绿色",
+            0xFFAD1457.toInt() to "粉色"
+        )
+
+        Snackbar.make(
+            findViewById(android.R.id.content),
+            "主题色已切换为${colorNames[color] ?: "自定义"}",
             Snackbar.LENGTH_SHORT
         ).show()
     }

@@ -7,6 +7,7 @@
     tools:context=".SettingsActivity">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -152,6 +153,124 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- 主题色设置 -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="主题色"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="选择应用的主题色"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnColorPurple"
+                            style="@style/Widget.MaterialComponents.Button.Icon"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_margin="4dp"
+                            android:contentDescription="紫色"
+                            app:backgroundTint="#6750A4"
+                            app:cornerRadius="22dp"
+                            app:strokeWidth="0dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnColorBlue"
+                            style="@style/Widget.MaterialComponents.Button.Icon"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_margin="4dp"
+                            android:contentDescription="蓝色"
+                            app:backgroundTint="#1976D2"
+                            app:cornerRadius="22dp"
+                            app:strokeWidth="0dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnColorTeal"
+                            style="@style/Widget.MaterialComponents.Button.Icon"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_margin="4dp"
+                            android:contentDescription="青色"
+                            app:backgroundTint="#00796B"
+                            app:cornerRadius="22dp"
+                            app:strokeWidth="0dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnColorRed"
+                            style="@style/Widget.MaterialComponents.Button.Icon"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_margin="4dp"
+                            android:contentDescription="红色"
+                            app:backgroundTint="#C62828"
+                            app:cornerRadius="22dp"
+                            app:strokeWidth="0dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnColorOrange"
+                            style="@style/Widget.MaterialComponents.Button.Icon"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_margin="4dp"
+                            android:contentDescription="橙色"
+                            app:backgroundTint="#E65100"
+                            app:cornerRadius="22dp"
+                            app:strokeWidth="0dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnColorGreen"
+                            style="@style/Widget.MaterialComponents.Button.Icon"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_margin="4dp"
+                            android:contentDescription="绿色"
+                            app:backgroundTint="#2E7D32"
+                            app:cornerRadius="22dp"
+                            app:strokeWidth="0dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnColorPink"
+                            style="@style/Widget.MaterialComponents.Button.Icon"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:layout_margin="4dp"
+                            android:contentDescription="粉色"
+                            app:backgroundTint="#AD1457"
+                            app:cornerRadius="22dp"
+                            app:strokeWidth="0dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- 清除缓存设置 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -217,7 +336,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="版本: 1.6"
+                        android:text="版本: 1.7"
                         android:textSize="14sp" />
 
                     <TextView

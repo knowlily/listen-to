@@ -7,127 +7,133 @@
     tools:context=".MainActivity">
 
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
->
+        android:layout_height="wrap_content">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="44dp"
             app:title="@string/app_name"
             app:titleTextAppearance="@style/ToolbarTitle" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <LinearLayout
+    <!-- 地址栏卡片（悬浮） -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardAddressBar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="2dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- 地址栏和控件 -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardAddressBar"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="2dp">
+            android:orientation="horizontal"
+            android:padding="2dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBack"
+                style="@style/Widget.MaterialComponents.Button.Icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="2dp"
+                android:contentDescription="@string/back"
+                app:icon="@drawable/ic_back"
+                app:iconTint="@color/on_surface"
+                app:iconSize="20dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnForward"
+                style="@style/Widget.MaterialComponents.Button.Icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="4dp"
+                android:contentDescription="@string/forward"
+                app:icon="@drawable/ic_forward"
+                app:iconTint="@color/on_surface"
+                app:iconSize="20dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/urlInputLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="2dp">
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                app:endIconMode="clear_text"
+                app:placeholderText="@string/enter_url">
 
-                <!-- 后退按钮 -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnBack"
-                    style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="2dp"
-                    android:contentDescription="@string/back"
-                    app:icon="@drawable/ic_back"
-                    app:iconTint="@color/on_surface"
-                    app:iconSize="20dp" />
-
-                <!-- 前进按钮 -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnForward"
-                    style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="4dp"
-                    android:contentDescription="@string/forward"
-                    app:icon="@drawable/ic_forward"
-                    app:iconTint="@color/on_surface"
-                    app:iconSize="20dp" />
-
-                <!-- 地址输入框 -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/urlInputLayout"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
-                    android:layout_width="0dp"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etUrl"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
-                    android:layout_weight="1"
-                    app:endIconMode="clear_text"
-                    app:placeholderText="@string/enter_url">
+                    android:imeOptions="actionGo"
+                    android:inputType="textUri"
+                    android:singleLine="true" />
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etUrl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionGo"
-                        android:inputType="textUri"
-                        android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-                </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRefresh"
+                style="@style/Widget.MaterialComponents.Button.Icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:contentDescription="@string/refresh"
+                app:icon="@drawable/ic_refresh"
+                app:iconTint="@color/on_surface"
+                app:iconSize="20dp" />
 
-                <!-- 刷新按钮 -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnRefresh"
-                    style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:contentDescription="@string/refresh"
-                    app:icon="@drawable/ic_refresh"
-                    app:iconTint="@color/on_surface"
-                    app:iconSize="20dp" />
+        </LinearLayout>
 
-            </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
-        </com.google.android.material.card.MaterialCardView>
+    <!-- 进度条 -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:visibility="gone"
+        app:indicatorColor="@color/primary"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <!-- 进度条 -->
-        <com.google.android.material.progressindicator.LinearProgressIndicator
-            android:id="@+id/progressBar"
-            android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:visibility="gone"
-            app:indicatorColor="@color/primary" />
+    <!-- WebView -->
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <!-- WebView 区域 -->
-        <WebView
-            android:id="@+id/webView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+    <!-- 悬浮底部导航栏 -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardBottomBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_margin="8dp"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
 
-        <!-- 底部导航栏 -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="48dp"
+            android:background="@null"
             app:menu="@menu/bottom_nav_menu"
-            app:itemPaddingTop="4dp"
-            app:itemPaddingBottom="4dp" />
+            app:itemPaddingTop="2dp"
+            app:itemPaddingBottom="2dp"
+            app:labelVisibilityMode="selected" />
 
-    </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
-    <!-- 弹窗容器，用于显示WebView弹窗（window.open等） -->
+    <!-- 弹窗容器 -->
     <FrameLayout
         android:id="@+id/popupContainer"
         android:layout_width="match_parent"
@@ -138,16 +144,17 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/popupToolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="44dp"
             android:layout_gravity="top"
             app:navigationIcon="@drawable/ic_back"
-            app:title="弹窗" />
+            app:title="弹窗"
+            app:titleTextAppearance="@style/ToolbarTitle" />
 
         <FrameLayout
             android:id="@+id/popupWebViewContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="?attr/actionBarSize" />
+            android:layout_marginTop="44dp" />
 
     </FrameLayout>
 
