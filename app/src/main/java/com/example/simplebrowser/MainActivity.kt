@@ -354,7 +354,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 加载默认主页
-        loadUrl("https://www.google.com")
+        loadUrl("https://www.bing.com")
     }
 
     private fun handleScroll(scrollY: Int, oldScrollY: Int) {
@@ -457,7 +457,7 @@ class MainActivity : AppCompatActivity() {
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_home -> {
-                    loadUrl("https://www.google.com")
+                    loadUrl("https://www.bing.com")
                     true
                 }
                 R.id.navigation_bookmarks -> {

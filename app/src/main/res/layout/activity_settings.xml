@@ -13,8 +13,9 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="设置" />
+            android:layout_height="48dp"
+            app:title="设置"
+            app:titleTextAppearance="@style/ToolbarTitle" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -251,11 +252,17 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvGitHub"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="GitHub: https://github.com/knowlily/listen-to"
-                        android:textSize="14sp" />
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="14sp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="4dp" />
 
                     <TextView
                         android:layout_width="wrap_content"

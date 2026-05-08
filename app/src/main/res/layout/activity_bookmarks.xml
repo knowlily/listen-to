@@ -13,8 +13,9 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="书签" />
+            android:layout_height="48dp"
+            app:title="书签"
+            app:titleTextAppearance="@style/ToolbarTitle" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView

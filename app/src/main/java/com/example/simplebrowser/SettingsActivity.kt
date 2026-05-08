@@ -1,11 +1,16 @@
 package com.example.simplebrowser
 
+import android.content.Intent
+import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.webkit.CookieManager
 import android.webkit.WebStorage
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
@@ -36,6 +41,69 @@ class SettingsActivity : AppCompatActivity() {
         initViews()
         setupToolbar()
         setupButtonListeners()
+        updateButtonStates()
+    }
+
+    private fun updateButtonStates() {
+        val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val currentTheme = sharedPref.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        val currentUA = sharedPref.getString("user_agent_mode", "mobile") ?: "mobile"
+
+        updateThemeButtonStyles(currentTheme)
+        updateUAButtonStyles(currentUA)
+    }
+
+    private fun getPrimaryColor(): Int {
+        val attrs = intArrayOf(androidx.appcompat.R.attr.colorPrimary)
+        val typedArray = obtainStyledAttributes(attrs)
+        val color = typedArray.getColor(0, Color.parseColor("#6750A4"))
+        typedArray.recycle()
+        return color
+    }
+
+    private fun updateThemeButtonStyles(activeMode: Int) {
+        val primaryColor = getPrimaryColor()
+
+        fun applyButton(btn: MaterialButton, isActive: Boolean) {
+            if (isActive) {
+                btn.setBackgroundColor(primaryColor)
+                btn.setTextColor(Color.WHITE)
+                btn.strokeWidth = 0
+            } else {
+                btn.setBackgroundColor(Color.TRANSPARENT)
+                btn.setTextColor(primaryColor)
+                btn.strokeWidth = dpToPx(1)
+                btn.strokeColor = android.content.res.ColorStateList.valueOf(primaryColor)
+            }
+        }
+
+        applyButton(btnThemeLight, activeMode == AppCompatDelegate.MODE_NIGHT_NO)
+        applyButton(btnThemeDark, activeMode == AppCompatDelegate.MODE_NIGHT_YES)
+        applyButton(btnThemeSystem, activeMode == AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+    }
+
+    private fun updateUAButtonStyles(activeMode: String) {
+        val primaryColor = getPrimaryColor()
+
+        fun applyButton(btn: MaterialButton, isActive: Boolean) {
+            if (isActive) {
+                btn.setBackgroundColor(primaryColor)
+                btn.setTextColor(Color.WHITE)
+                btn.strokeWidth = 0
+            } else {
+                btn.setBackgroundColor(Color.TRANSPARENT)
+                btn.setTextColor(primaryColor)
+                btn.strokeWidth = dpToPx(1)
+                btn.strokeColor = android.content.res.ColorStateList.valueOf(primaryColor)
+            }
+        }
+
+        applyButton(btnUserAgentPC, activeMode == "pc")
+        applyButton(btnUserAgentMobile, activeMode == "mobile")
+    }
+
+    private fun dpToPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
     }
 
     private fun initViews() {
@@ -46,6 +114,12 @@ class SettingsActivity : AppCompatActivity() {
         btnThemeSystem = findViewById(R.id.btnThemeSystem)
         btnUserAgentPC = findViewById(R.id.btnUserAgentPC)
         btnUserAgentMobile = findViewById(R.id.btnUserAgentMobile)
+
+        // 设置GitHub链接点击事件
+        findViewById<TextView>(R.id.tvGitHub).setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/knowlily/listen-to"))
+            startActivity(intent)
+        }
     }
 
     private fun setupToolbar() {
@@ -126,6 +200,8 @@ class SettingsActivity : AppCompatActivity() {
             apply()
         }
 
+        updateThemeButtonStyles(mode)
+
         // 显示确认消息
         val message = when (mode) {
             AppCompatDelegate.MODE_NIGHT_NO -> "已切换到浅色主题"
@@ -148,6 +224,8 @@ class SettingsActivity : AppCompatActivity() {
             putString("user_agent_mode", mode)
             apply()
         }
+
+        updateUAButtonStyles(mode)
 
         // 显示确认消息
         val message = when (mode) {
