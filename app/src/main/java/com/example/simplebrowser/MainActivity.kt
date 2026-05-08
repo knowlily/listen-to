@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -499,11 +500,8 @@ class MainActivity : AppCompatActivity() {
         appBarLayout.setBackgroundColor(accentColor)
         progressBar.setIndicatorColor(accentColor)
         cardBottomBar.setCardBackgroundColor(accentColor)
-        bottomNavigationView.itemIconTintList = android.content.res.ColorStateList.valueOf(
-            ContextCompat.getColor(this, android.R.color.white))
-        bottomNavigationView.itemTextColor = android.content.res.ColorStateList.valueOf(
-            ContextCompat.getColor(this, android.R.color.white))
-        bottomNavigationView.setBackgroundColor(accentColor)
+        bottomNavigationView.itemIconTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
+        bottomNavigationView.itemTextColor = android.content.res.ColorStateList.valueOf(Color.WHITE)
     }
 
     private fun setupDynamicColors() {
