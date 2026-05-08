@@ -5,8 +5,23 @@
 GitHub Releases: https://github.com/knowlily/listen-to/releases
 
 ## 当前版本
-- **最新版本**: 1.7 (versionCode 8)
+- **最新版本**: 1.8 (versionCode 9)
 - **构建日期**: 2026-05-08
+
+## [1.8.0] - 2026-05-08
+
+### 新增
+- 浏览器插件系统，统一的 BrowserPlugin 接口标准
+- 广告拦截插件 (AdBlockerPlugin)，域名黑名单 + 元素隐藏
+- 暗色模式插件 (DarkModePlugin)，CSS filter 全网页暗色
+- 设置页插件管理界面，SwitchMaterial 开关切换
+
+### 改进
+- 底栏加宽：wrap_content → match_parent + 24dp 水平边距
+- 搜索栏/底栏隐藏时 WebView 正确填充全屏
+- 主题色选择重新设计：2 行网格 (4+3)，圆形按钮增大至 52dp
+- 合并"关于"+"开发者信息"为一张可点击卡片，点击跳转 GitHub
+- 设置卡片圆角统一为 12dp
 
 ## [1.7.0] - 2026-05-08
 
