@@ -327,6 +327,31 @@
                         android:textSize="14sp" />
 
                     <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnInstallFromUrl"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:text="从URL安装" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnInstallFromFile"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="从本地安装" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:id="@+id/pluginContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

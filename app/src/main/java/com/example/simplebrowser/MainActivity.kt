@@ -74,6 +74,7 @@ class MainActivity : AppCompatActivity() {
         pluginManager = PluginManager.getInstance(this)
         pluginManager.registerPlugin(AdBlockerPlugin())
         pluginManager.registerPlugin(DarkModePlugin())
+        pluginManager.loadUserPlugins()
 
         // 配置WebView
         setupWebView()

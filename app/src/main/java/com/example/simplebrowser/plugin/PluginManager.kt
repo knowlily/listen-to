@@ -4,18 +4,6 @@ import android.content.Context
 import android.webkit.WebView
 import android.util.Log
 
-/**
- * 插件管理器 — 统一管理所有插件的注册、启用/禁用、生命周期。
- *
- * 使用方式：
- *   val pm = PluginManager.getInstance(context)
- *   pm.registerPlugin(MyPlugin())
- *   pm.enablePlugin("my.plugin.id")
- *
- * 在 WebView 回调中调用：
- *   pm.notifyUrlLoading(url)
- *   pm.notifyPageFinished(webView, url)
- */
 class PluginManager private constructor(private val context: Context) {
 
     companion object {
@@ -30,19 +18,20 @@ class PluginManager private constructor(private val context: Context) {
                 instance ?: PluginManager(context.applicationContext).also { instance = it }
             }
         }
+
+        private val BUILTIN_IDS = setOf("adblocker", "darkmode")
     }
 
     private val plugins = mutableMapOf<String, BrowserPlugin>()
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    /** 注册插件（通常在 Application 或 Activity onCreate 中调用） */
+    /** 注册插件 */
     fun registerPlugin(plugin: BrowserPlugin) {
         if (plugins.containsKey(plugin.id)) {
             Log.w(TAG, "插件已注册: ${plugin.id}")
             return
         }
-        // 从持久化存储恢复启用状态
-        plugin.isEnabled = prefs.getBoolean("plugin_${plugin.id}", true)
+        plugin.isEnabled = prefs.getBoolean("plugin_${plugin.id}", plugin.isEnabled)
         plugins[plugin.id] = plugin
         plugin.onInit()
         Log.d(TAG, "注册插件: ${plugin.id} (${plugin.name}), 启用=${plugin.isEnabled}")
@@ -56,6 +45,43 @@ class PluginManager private constructor(private val context: Context) {
             Log.d(TAG, "卸载插件: $id")
         }
     }
+
+    /** 加载所有用户安装的插件 */
+    fun loadUserPlugins() {
+        val repo = UserPluginRepository(context)
+        for (plugin in repo.loadAll()) {
+            registerPlugin(plugin)
+        }
+    }
+
+    /** 从 JSON 字符串安装插件 */
+    fun installPlugin(jsonString: String): Result<String> {
+        val repo = UserPluginRepository(context)
+        val config = repo.parseConfig(jsonString)
+            ?: return Result.failure(IllegalArgumentException("插件 JSON 格式无效"))
+        if (plugins.containsKey(config.id)) {
+            return Result.failure(IllegalStateException("插件已存在: ${config.id}"))
+        }
+        val plugin = UserPlugin(config)
+        repo.save(config)
+        registerPlugin(plugin)
+        return Result.success(config.id)
+    }
+
+    /** 卸载用户安装的插件（内置插件无法卸载） */
+    fun uninstallUserPlugin(id: String): Boolean {
+        if (isBuiltinPlugin(id)) {
+            Log.w(TAG, "内置插件无法卸载: $id")
+            return false
+        }
+        val repo = UserPluginRepository(context)
+        unregisterPlugin(id)
+        repo.delete(id)
+        return true
+    }
+
+    /** 是否为内置插件 */
+    fun isBuiltinPlugin(id: String): Boolean = id in BUILTIN_IDS
 
     /** 获取所有已注册插件 */
     fun getPlugins(): List<BrowserPlugin> = plugins.values.toList()
@@ -109,7 +135,6 @@ class PluginManager private constructor(private val context: Context) {
                 Log.e(TAG, "插件 ${plugin.id} onPageFinished 异常: ${e.message}", e)
             }
         }
-        // 注入 JavaScript
         injectJavaScript(webView)
     }
 

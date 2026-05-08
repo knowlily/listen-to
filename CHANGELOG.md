@@ -5,7 +5,23 @@
 GitHub Releases: https://github.com/knowlily/listen-to/releases
 
 ## 当前版本
-- **最新版本**: 1.8 (versionCode 9)
+- **最新版本**: 1.9 (versionCode 10)
+- **构建日期**: 2026-05-08
+
+## [1.9.0] - 2026-05-08
+
+### 新增
+- 用户可自行安装插件：支持从 URL 下载或本地文件加载 JSON 插件配置
+- 三种常见插件类型：JavaScript 用户脚本、CSS 用户样式、AdBlock 广告拦截规则
+- 插件 URL 匹配模式（glob 通配符），可限制插件仅在特定网站生效
+- 插件卸载功能：用户安装的插件可随时卸载，内置插件受保护
+
+### 改进
+- PluginManager 新增 installPlugin/uninstallUserPlugin/loadUserPlugins 方法
+- 设置页插件列表支持动态刷新，安装/卸载后即时更新
+- 插件安装对话框：URL 输入 + 后台下载，本地文件选取器
+
+## [1.8.0] - 2026-05-08
 - **构建日期**: 2026-05-08
 
 ## [1.8.0] - 2026-05-08

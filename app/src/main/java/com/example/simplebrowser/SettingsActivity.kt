@@ -1,13 +1,17 @@
 package com.example.simplebrowser
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.webkit.CookieManager
 import android.webkit.WebStorage
+import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -17,6 +21,12 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.example.simplebrowser.plugin.PluginManager
+import com.example.simplebrowser.plugin.UserPluginConfig
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
@@ -26,8 +36,10 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var btnThemeSystem: MaterialButton
     private lateinit var btnUserAgentPC: MaterialButton
     private lateinit var btnUserAgentMobile: MaterialButton
+    private lateinit var btnInstallFromUrl: MaterialButton
+    private lateinit var btnInstallFromFile: MaterialButton
+    private lateinit var pluginContainer: LinearLayout
 
-    // 主题色预设按钮
     private val colorPresets = mapOf(
         R.id.btnColorPurple to 0xFF6750A4.toInt(),
         R.id.btnColorBlue to 0xFF1976D2.toInt(),
@@ -38,13 +50,17 @@ class SettingsActivity : AppCompatActivity() {
         R.id.btnColorPink to 0xFFAD1457.toInt()
     )
 
+    private val filePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let { installFromFileUri(it) }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 应用动态取色（Android 12+）
         DynamicColors.applyToActivityIfAvailable(this)
 
-        // 应用保存的主题设置
         val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
         val savedTheme = sharedPref.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(savedTheme)
@@ -141,26 +157,26 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupPluginList() {
-        val container = findViewById<android.widget.LinearLayout>(R.id.pluginContainer)
+        pluginContainer.removeAllViews()
         val pm = PluginManager.getInstance(this)
 
         for (plugin in pm.getPlugins()) {
-            val row = android.widget.LinearLayout(this).apply {
-                orientation = android.widget.LinearLayout.HORIZONTAL
-                layoutParams = android.widget.LinearLayout.LayoutParams(
-                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            val row = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    topMargin = if (container.childCount > 0) dpToPx(8) else 0
+                    topMargin = if (pluginContainer.childCount > 0) dpToPx(8) else 0
                 }
                 gravity = android.view.Gravity.CENTER_VERTICAL
             }
 
-            val textBlock = android.widget.LinearLayout(this).apply {
-                orientation = android.widget.LinearLayout.VERTICAL
-                layoutParams = android.widget.LinearLayout.LayoutParams(
+            val textBlock = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
                     0,
-                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
                     1f
                 )
             }
@@ -172,7 +188,11 @@ class SettingsActivity : AppCompatActivity() {
             }
 
             val descView = TextView(this).apply {
-                text = plugin.description
+                text = if (pm.isBuiltinPlugin(plugin.id)) {
+                    "${plugin.description}  v${plugin.version}"
+                } else {
+                    "${plugin.description}  v${plugin.version}  (用户安装)"
+                }
                 textSize = 12f
                 setTextColor(ContextCompat.getColor(context, R.color.on_surface_variant))
             }
@@ -189,8 +209,143 @@ class SettingsActivity : AppCompatActivity() {
 
             row.addView(textBlock)
             row.addView(toggle)
-            container.addView(row)
+
+            if (!pm.isBuiltinPlugin(plugin.id)) {
+                val uninstallBtn = MaterialButton(this).apply {
+                    text = "卸载"
+                    textSize = 12f
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply { marginStart = dpToPx(8) }
+                    setTextColor(ContextCompat.getColor(context, R.color.on_surface_variant))
+                    setBackgroundColor(Color.TRANSPARENT)
+                    strokeWidth = dpToPx(1)
+                    strokeColor = android.content.res.ColorStateList.valueOf(
+                        ContextCompat.getColor(context, R.color.on_surface_variant)
+                    )
+                    setOnClickListener {
+                        confirmUninstall(plugin.id, plugin.name)
+                    }
+                }
+                row.addView(uninstallBtn)
+            }
+
+            pluginContainer.addView(row)
         }
+    }
+
+    private fun confirmUninstall(id: String, name: String) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("卸载插件")
+            .setMessage("确定要卸载「$name」吗？")
+            .setPositiveButton("卸载") { _, _ ->
+                PluginManager.getInstance(this).uninstallUserPlugin(id)
+                setupPluginList()
+                Snackbar.make(
+                    findViewById(android.R.id.content),
+                    "插件已卸载",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    private fun showUrlInstallDialog() {
+        val input = EditText(this).apply {
+            hint = "https://example.com/plugin.json"
+            inputType = android.text.InputType.TYPE_TEXT_VARIATION_URI
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(dpToPx(16), dpToPx(8), dpToPx(16), 0)
+            }
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("从 URL 安装插件")
+            .setMessage("输入插件 JSON 配置文件的 URL 地址")
+            .setView(input)
+            .setPositiveButton("安装") { _, _ ->
+                val url = input.text.toString().trim()
+                if (url.isNotEmpty()) installFromUrl(url)
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    private fun installFromUrl(urlString: String) {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("正在下载...")
+            .setMessage("请稍候")
+            .setCancelable(false)
+            .create()
+        dialog.show()
+
+        Thread {
+            try {
+                val url = URL(urlString)
+                val conn = url.openConnection() as HttpURLConnection
+                conn.connectTimeout = 10000
+                conn.readTimeout = 10000
+                val reader = BufferedReader(InputStreamReader(conn.inputStream, "UTF-8"))
+                val json = reader.readText()
+                reader.close()
+                conn.disconnect()
+
+                runOnUiThread {
+                    dialog.dismiss()
+                    installPlugin(json)
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    dialog.dismiss()
+                    Snackbar.make(
+                        findViewById(android.R.id.content),
+                        "下载失败: ${e.localizedMessage}",
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }.start()
+    }
+
+    private fun installFromFileUri(uri: Uri) {
+        try {
+            val inputStream = contentResolver.openInputStream(uri)
+            val json = inputStream?.bufferedReader()?.readText() ?: ""
+            inputStream?.close()
+            if (json.isNotBlank()) installPlugin(json)
+        } catch (e: Exception) {
+            Snackbar.make(
+                findViewById(android.R.id.content),
+                "读取文件失败: ${e.localizedMessage}",
+                Snackbar.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun installPlugin(json: String) {
+        val result = PluginManager.getInstance(this).installPlugin(json)
+        result.fold(
+            onSuccess = { id ->
+                setupPluginList()
+                Snackbar.make(
+                    findViewById(android.R.id.content),
+                    "插件安装成功: $id",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+            },
+            onFailure = { e ->
+                Snackbar.make(
+                    findViewById(android.R.id.content),
+                    "安装失败: ${e.localizedMessage}",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            }
+        )
     }
 
     private fun dpToPx(dp: Int): Int {
@@ -205,14 +360,15 @@ class SettingsActivity : AppCompatActivity() {
         btnThemeSystem = findViewById(R.id.btnThemeSystem)
         btnUserAgentPC = findViewById(R.id.btnUserAgentPC)
         btnUserAgentMobile = findViewById(R.id.btnUserAgentMobile)
+        btnInstallFromUrl = findViewById(R.id.btnInstallFromUrl)
+        btnInstallFromFile = findViewById(R.id.btnInstallFromFile)
+        pluginContainer = findViewById(R.id.pluginContainer)
 
-        // 点击整个关于卡片跳转GitHub
         findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardAbout).setOnClickListener {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/knowlily/listen-to"))
             startActivity(intent)
         }
 
-        // 初始化主题色按钮
         for (btnId in colorPresets.keys) {
             findViewById<MaterialButton>(btnId)
         }
@@ -252,7 +408,14 @@ class SettingsActivity : AppCompatActivity() {
             setUserAgentMode("mobile")
         }
 
-        // 主题色按钮
+        btnInstallFromUrl.setOnClickListener {
+            showUrlInstallDialog()
+        }
+
+        btnInstallFromFile.setOnClickListener {
+            filePickerLauncher.launch(arrayOf("application/json", "*/*"))
+        }
+
         for ((btnId, color) in colorPresets) {
             findViewById<MaterialButton>(btnId).setOnClickListener {
                 setAccentColor(color)
@@ -262,19 +425,15 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun clearWebViewCache() {
         try {
-            // 清除WebView缓存
             WebStorage.getInstance().deleteAllData()
 
-            // 清除Cookie
             val cookieManager = CookieManager.getInstance()
             cookieManager.removeAllCookies(null)
             cookieManager.flush()
 
-            // 清除本地存储
             deleteDatabase("webview.db")
             deleteDatabase("webviewCache.db")
 
-            // 删除缓存目录
             cacheDir.deleteRecursively()
 
             Snackbar.make(
@@ -296,7 +455,6 @@ class SettingsActivity : AppCompatActivity() {
     private fun setThemeMode(mode: Int) {
         AppCompatDelegate.setDefaultNightMode(mode)
 
-        // 保存用户选择
         val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
         with(sharedPref.edit()) {
             putInt("theme_mode", mode)
@@ -305,7 +463,6 @@ class SettingsActivity : AppCompatActivity() {
 
         updateThemeButtonStyles(mode)
 
-        // 显示确认消息
         val message = when (mode) {
             AppCompatDelegate.MODE_NIGHT_NO -> "已切换到浅色主题"
             AppCompatDelegate.MODE_NIGHT_YES -> "已切换到深色主题"
@@ -329,7 +486,6 @@ class SettingsActivity : AppCompatActivity() {
 
         updateColorButtonStates(color)
 
-        // 立即应用到设置页面
         toolbar.setBackgroundColor(color)
         findViewById<com.google.android.material.appbar.AppBarLayout>(R.id.appBarLayout)
             ?.setBackgroundColor(color)
@@ -352,7 +508,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setUserAgentMode(mode: String) {
-        // 保存用户选择
         val sharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
         with(sharedPref.edit()) {
             putString("user_agent_mode", mode)
@@ -361,7 +516,6 @@ class SettingsActivity : AppCompatActivity() {
 
         updateUAButtonStyles(mode)
 
-        // 显示确认消息
         val message = when (mode) {
             "pc" -> "已切换到电脑模式"
             "mobile" -> "已切换到手机模式"
