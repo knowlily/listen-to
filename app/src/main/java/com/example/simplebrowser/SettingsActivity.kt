@@ -79,10 +79,11 @@ class SettingsActivity : AppCompatActivity() {
         for ((btnId, color) in colorPresets) {
             val btn = findViewById<MaterialButton>(btnId)
             if (color == activeColor) {
-                btn.strokeWidth = dpToPx(3)
+                btn.strokeWidth = dpToPx(4)
                 btn.strokeColor = android.content.res.ColorStateList.valueOf(Color.WHITE)
             } else {
-                btn.strokeWidth = 0
+                btn.strokeWidth = dpToPx(1)
+                btn.strokeColor = android.content.res.ColorStateList.valueOf(0x33000000)
             }
         }
     }
@@ -149,8 +150,8 @@ class SettingsActivity : AppCompatActivity() {
         btnUserAgentPC = findViewById(R.id.btnUserAgentPC)
         btnUserAgentMobile = findViewById(R.id.btnUserAgentMobile)
 
-        // 设置GitHub链接点击事件
-        findViewById<TextView>(R.id.tvGitHub).setOnClickListener {
+        // 点击整个关于卡片跳转GitHub
+        findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardAbout).setOnClickListener {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/knowlily/listen-to"))
             startActivity(intent)
         }

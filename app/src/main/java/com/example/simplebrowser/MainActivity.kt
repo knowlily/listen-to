@@ -388,22 +388,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun hideNavigation() {
         if (!isNavigationHidden) {
-            appBarLayout.animate()
-                .translationY(-appBarLayout.height.toFloat())
-                .setDuration(300)
-                .withEndAction { appBarLayout.visibility = View.GONE }
-                .start()
+            // 使用 AppBarLayout 收起动画，会自动调整 CoordinatorLayout 子视图
+            appBarLayout.setExpanded(false, true)
 
             cardAddressBar.animate()
-                .translationY(-cardAddressBar.height.toFloat() - appBarLayout.height)
-                .setDuration(300)
-                .withEndAction { cardAddressBar.visibility = View.GONE }
+                .alpha(0f)
+                .translationY(-cardAddressBar.height.toFloat())
+                .setDuration(250)
+                .withEndAction {
+                    cardAddressBar.visibility = View.GONE
+                    // 强制重新布局让 WebView 填充空间
+                    cardAddressBar.parent?.requestLayout()
+                }
                 .start()
 
             cardBottomBar.animate()
+                .alpha(0f)
                 .translationY(cardBottomBar.height.toFloat())
-                .setDuration(300)
-                .withEndAction { cardBottomBar.visibility = View.GONE }
+                .setDuration(250)
+                .withEndAction { cardBottomBar.visibility = View.INVISIBLE }
                 .start()
 
             isNavigationHidden = true
@@ -412,14 +415,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun showNavigation() {
         if (isNavigationHidden) {
-            appBarLayout.visibility = View.VISIBLE
-            appBarLayout.animate().translationY(0f).setDuration(300).start()
+            // 展开 AppBarLayout
+            appBarLayout.setExpanded(true, true)
 
             cardAddressBar.visibility = View.VISIBLE
-            cardAddressBar.animate().translationY(0f).setDuration(300).start()
+            cardAddressBar.alpha = 0f
+            cardAddressBar.translationY = -cardAddressBar.height.toFloat()
+            cardAddressBar.animate().alpha(1f).translationY(0f).setDuration(250)
+                .withEndAction {
+                    cardAddressBar.parent?.requestLayout()
+                }
+                .start()
 
             cardBottomBar.visibility = View.VISIBLE
-            cardBottomBar.animate().translationY(0f).setDuration(300).start()
+            cardBottomBar.alpha = 0f
+            cardBottomBar.translationY = cardBottomBar.height.toFloat()
+            cardBottomBar.animate().alpha(1f).translationY(0f).setDuration(250).start()
 
             isNavigationHidden = false
         }

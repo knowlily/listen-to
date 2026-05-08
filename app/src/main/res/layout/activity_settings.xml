@@ -28,14 +28,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:paddingBottom="24dp">
 
             <!-- 主题设置 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                app:cardCornerRadius="8dp"
+                app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
 
                 <LinearLayout
@@ -158,7 +159,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                app:cardCornerRadius="8dp"
+                app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
 
                 <LinearLayout
@@ -182,6 +183,7 @@
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="14sp" />
 
+                    <!-- 第一行：4个颜色 -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -192,79 +194,103 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnColorPurple"
                             style="@style/Widget.MaterialComponents.Button.Icon"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:layout_margin="4dp"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:layout_marginHorizontal="6dp"
                             android:contentDescription="紫色"
                             app:backgroundTint="#6750A4"
-                            app:cornerRadius="22dp"
-                            app:strokeWidth="0dp" />
+                            app:cornerRadius="26dp"
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@color/md_theme_light_surface"
+                            app:rippleColor="#33FFFFFF" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnColorBlue"
                             style="@style/Widget.MaterialComponents.Button.Icon"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:layout_margin="4dp"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:layout_marginHorizontal="6dp"
                             android:contentDescription="蓝色"
                             app:backgroundTint="#1976D2"
-                            app:cornerRadius="22dp"
-                            app:strokeWidth="0dp" />
+                            app:cornerRadius="26dp"
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@color/md_theme_light_surface"
+                            app:rippleColor="#33FFFFFF" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnColorTeal"
                             style="@style/Widget.MaterialComponents.Button.Icon"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:layout_margin="4dp"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:layout_marginHorizontal="6dp"
                             android:contentDescription="青色"
                             app:backgroundTint="#00796B"
-                            app:cornerRadius="22dp"
-                            app:strokeWidth="0dp" />
+                            app:cornerRadius="26dp"
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@color/md_theme_light_surface"
+                            app:rippleColor="#33FFFFFF" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnColorRed"
                             style="@style/Widget.MaterialComponents.Button.Icon"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:layout_margin="4dp"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:layout_marginHorizontal="6dp"
                             android:contentDescription="红色"
                             app:backgroundTint="#C62828"
-                            app:cornerRadius="22dp"
-                            app:strokeWidth="0dp" />
+                            app:cornerRadius="26dp"
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@color/md_theme_light_surface"
+                            app:rippleColor="#33FFFFFF" />
+
+                    </LinearLayout>
+
+                    <!-- 第二行：3个颜色 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        android:gravity="center">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnColorOrange"
                             style="@style/Widget.MaterialComponents.Button.Icon"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:layout_margin="4dp"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:layout_marginHorizontal="6dp"
                             android:contentDescription="橙色"
                             app:backgroundTint="#E65100"
-                            app:cornerRadius="22dp"
-                            app:strokeWidth="0dp" />
+                            app:cornerRadius="26dp"
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@color/md_theme_light_surface"
+                            app:rippleColor="#33FFFFFF" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnColorGreen"
                             style="@style/Widget.MaterialComponents.Button.Icon"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:layout_margin="4dp"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:layout_marginHorizontal="6dp"
                             android:contentDescription="绿色"
                             app:backgroundTint="#2E7D32"
-                            app:cornerRadius="22dp"
-                            app:strokeWidth="0dp" />
+                            app:cornerRadius="26dp"
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@color/md_theme_light_surface"
+                            app:rippleColor="#33FFFFFF" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnColorPink"
                             style="@style/Widget.MaterialComponents.Button.Icon"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:layout_margin="4dp"
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:layout_marginHorizontal="6dp"
                             android:contentDescription="粉色"
                             app:backgroundTint="#AD1457"
-                            app:cornerRadius="22dp"
-                            app:strokeWidth="0dp" />
+                            app:cornerRadius="26dp"
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@color/md_theme_light_surface"
+                            app:rippleColor="#33FFFFFF" />
 
                     </LinearLayout>
 
@@ -312,10 +338,14 @@
 
             <!-- 关于应用 -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAbout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                app:cardCornerRadius="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
 
                 <LinearLayout
@@ -324,72 +354,74 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="关于"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
 
-                    <TextView
-                        android:id="@+id/tvVersion"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="版本: 1.7"
-                        android:textSize="14sp" />
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="简单浏览器 - 一个轻量级的Android浏览器"
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="14sp" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="关于"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
 
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                            <TextView
+                                android:id="@+id/tvVersion"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:text="版本: 1.7"
+                                android:textSize="14sp" />
 
-            <!-- 其他信息 -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="简单浏览器 - 轻量级Android浏览器"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textSize="13sp" />
+                        </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="›"
+                            android:textSize="24sp"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginStart="8dp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="开发者信息"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="8dp"
+                        android:background="?attr/colorOutlineVariant" />
 
                     <TextView
                         android:id="@+id/tvGitHub"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="GitHub: https://github.com/knowlily/listen-to"
+                        android:text="github.com/knowlily/listen-to"
                         android:textColor="?attr/colorPrimary"
-                        android:textSize="14sp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackground"
-                        android:padding="4dp" />
+                        android:textSize="13sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="构建时间: 2026年3月20日"
+                        android:text="构建于 2026年5月8日"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="14sp" />
+                        android:textSize="12sp" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

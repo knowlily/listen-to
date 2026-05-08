@@ -31,10 +31,11 @@
             android:id="@+id/cardAddressBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="8dp"
-            app:cardCornerRadius="20dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="2dp"
+            app:cardCornerRadius="18dp"
             app:cardElevation="2dp">
 
             <LinearLayout
@@ -117,10 +118,12 @@
     <!-- 悬浮底部导航栏 -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardBottomBar"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_margin="8dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="12dp"
         app:cardCornerRadius="28dp"
         app:cardElevation="6dp"
         app:cardBackgroundColor="@color/md_theme_light_surface">
