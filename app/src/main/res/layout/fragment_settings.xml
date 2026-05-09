@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".SettingsActivity">
+    android:layout_height="match_parent">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -91,18 +89,16 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="跟随系统" />
-
                     </LinearLayout>
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 浏览器标识设置 -->
+            <!-- 浏览器标识 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                app:cardCornerRadius="8dp"
+                app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
 
                 <LinearLayout
@@ -148,13 +144,11 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="手机模式" />
-
                     </LinearLayout>
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 主题色设置 -->
+            <!-- 主题色 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -183,7 +177,6 @@
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="14sp" />
 
-                    <!-- 第一行：4个颜色 -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -242,10 +235,8 @@
                             app:strokeWidth="0dp"
                             app:strokeColor="@color/md_theme_light_surface"
                             app:rippleColor="#33FFFFFF" />
-
                     </LinearLayout>
 
-                    <!-- 第二行：3个颜色 -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -291,9 +282,7 @@
                             app:strokeWidth="0dp"
                             app:strokeColor="@color/md_theme_light_surface"
                             app:rippleColor="#33FFFFFF" />
-
                     </LinearLayout>
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -348,7 +337,6 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="从本地安装" />
-
                     </LinearLayout>
 
                     <LinearLayout
@@ -357,16 +345,15 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:orientation="vertical" />
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 清除缓存设置 -->
+            <!-- 清除缓存 -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                app:cardCornerRadius="8dp"
+                app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
 
                 <LinearLayout
@@ -396,11 +383,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="清除缓存" />
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- 关于应用 -->
+            <!-- 关于 -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardAbout"
                 android:layout_width="match_parent"
@@ -442,14 +428,14 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="6dp"
-                                android:text="版本: 1.7"
+                                android:text="版本: 1.9"
                                 android:textSize="14sp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="简单浏览器 - 轻量级Android浏览器"
+                                android:text="KnowlilyBrowser - 轻量级Android浏览器"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="13sp" />
                         </LinearLayout>
@@ -461,7 +447,6 @@
                             android:textSize="24sp"
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:layout_marginStart="8dp" />
-
                     </LinearLayout>
 
                     <View
@@ -483,14 +468,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="构建于 2026年5月8日"
+                        android:text="构建于 2026年5月10日"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp" />
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

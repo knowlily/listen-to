@@ -16,25 +16,53 @@
 - 动态取色：Android 12+ 自动适配系统壁纸主题色
 - 缓存清除：WebView 缓存和历史记录清除
 - 加载进度条：线性进度指示器
-- 中文界面
+- 浏览器插件系统：内置广告拦截 + 夜间模式，支持用户安装 JS/CSS/AdBlock 插件
+- 插件安装：支持从 URL 下载或本地文件加载 JSON 配置
+- ViewModel + Repository 架构：数据持久化与 UI 分离，旋转屏幕不丢状态
+- 单 Activity 多 Fragment：流畅的 Tab 切换，WebView 实例共享
 
 ## 技术栈
 
 - Kotlin
-- Android Jetpack (AppCompat, ViewBinding)
+- Android Jetpack (ViewModel, LiveData, Fragment)
 - Material Design 2 Components
 - Android System WebView
 - SharedPreferences 持久化
+- Repository 架构模式
 
 ## 项目结构
 
 ```
 app/
-├── src/main/java/com/example/simplebrowser/
-│   ├── MainActivity.kt            # 主浏览器界面
-│   ├── SettingsActivity.kt        # 设置页面
-│   ├── HistoryActivity.kt         # 历史记录
-│   └── BookmarksActivity.kt       # 书签管理
+├── src/main/java/com/knowlily/browser/
+│   ├── MainActivity.kt              # 单一 Activity，管理 Fragment 切换
+│   ├── model/
+│   │   ├── HistoryItem.kt           # 历史记录数据类
+│   │   └── BookmarkItem.kt          # 书签数据类
+│   ├── ui/
+│   │   ├── BrowserFragment.kt       # 浏览器主界面 (WebView)
+│   │   ├── HistoryFragment.kt       # 历史记录页
+│   │   ├── BookmarksFragment.kt     # 书签管理页
+│   │   └── SettingsFragment.kt      # 设置页
+│   ├── viewmodel/
+│   │   ├── BrowserViewModel.kt      # 浏览器状态管理
+│   │   ├── HistoryViewModel.kt      # 历史记录状态
+│   │   ├── BookmarksViewModel.kt    # 书签状态
+│   │   └── SettingsViewModel.kt     # 设置状态
+│   ├── repository/
+│   │   ├── SettingsRepository.kt    # 设置数据持久化
+│   │   ├── HistoryRepository.kt     # 历史记录持久化
+│   │   └── BookmarksRepository.kt   # 书签持久化
+│   ├── adapter/
+│   │   ├── HistoryAdapter.kt        # 历史记录列表适配器
+│   │   └── BookmarksAdapter.kt      # 书签列表适配器
+│   └── plugin/
+│       ├── BrowserPlugin.kt         # 插件统一接口
+│       ├── PluginManager.kt         # 插件管理器
+│       ├── AdBlockerPlugin.kt       # 广告拦截插件
+│       ├── DarkModePlugin.kt        # 夜间模式插件
+│       ├── UserPlugin.kt            # 用户自定义插件
+│       └── UserPluginRepository.kt  # 用户插件持久化
 ├── src/main/res/
 │   ├── layout/                    # 布局文件
 │   │   ├── activity_main.xml      # 主界面

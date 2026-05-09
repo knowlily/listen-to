@@ -1,4 +1,4 @@
-package com.example.simplebrowser.plugin
+package com.knowlily.browser.plugin
 
 import android.content.Context
 import android.webkit.WebView
@@ -25,7 +25,6 @@ class PluginManager private constructor(private val context: Context) {
     private val plugins = mutableMapOf<String, BrowserPlugin>()
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    /** 注册插件 */
     fun registerPlugin(plugin: BrowserPlugin) {
         if (plugins.containsKey(plugin.id)) {
             Log.w(TAG, "插件已注册: ${plugin.id}")
@@ -37,7 +36,6 @@ class PluginManager private constructor(private val context: Context) {
         Log.d(TAG, "注册插件: ${plugin.id} (${plugin.name}), 启用=${plugin.isEnabled}")
     }
 
-    /** 卸载插件 */
     fun unregisterPlugin(id: String) {
         plugins[id]?.let {
             it.onDestroy()
@@ -46,7 +44,6 @@ class PluginManager private constructor(private val context: Context) {
         }
     }
 
-    /** 加载所有用户安装的插件 */
     fun loadUserPlugins() {
         val repo = UserPluginRepository(context)
         for (plugin in repo.loadAll()) {
@@ -54,7 +51,6 @@ class PluginManager private constructor(private val context: Context) {
         }
     }
 
-    /** 从 JSON 字符串安装插件 */
     fun installPlugin(jsonString: String): Result<String> {
         val repo = UserPluginRepository(context)
         val config = repo.parseConfig(jsonString)
@@ -68,7 +64,6 @@ class PluginManager private constructor(private val context: Context) {
         return Result.success(config.id)
     }
 
-    /** 卸载用户安装的插件（内置插件无法卸载） */
     fun uninstallUserPlugin(id: String): Boolean {
         if (isBuiltinPlugin(id)) {
             Log.w(TAG, "内置插件无法卸载: $id")
@@ -80,16 +75,12 @@ class PluginManager private constructor(private val context: Context) {
         return true
     }
 
-    /** 是否为内置插件 */
     fun isBuiltinPlugin(id: String): Boolean = id in BUILTIN_IDS
 
-    /** 获取所有已注册插件 */
     fun getPlugins(): List<BrowserPlugin> = plugins.values.toList()
 
-    /** 获取已启用的插件 */
     fun getEnabledPlugins(): List<BrowserPlugin> = plugins.values.filter { it.isEnabled }
 
-    /** 启用插件 */
     fun enablePlugin(id: String) {
         plugins[id]?.let {
             it.isEnabled = true
@@ -98,7 +89,6 @@ class PluginManager private constructor(private val context: Context) {
         }
     }
 
-    /** 禁用插件 */
     fun disablePlugin(id: String) {
         plugins[id]?.let {
             it.isEnabled = false
@@ -107,9 +97,6 @@ class PluginManager private constructor(private val context: Context) {
         }
     }
 
-    // ─── WebView 事件分发 ───────────────────────────────────────────
-
-    /** 分发 URL 加载前事件，返回最终要加载的 URL */
     fun notifyUrlLoading(url: String): String {
         var result = url
         for (plugin in getEnabledPlugins()) {
@@ -126,7 +113,6 @@ class PluginManager private constructor(private val context: Context) {
         return result
     }
 
-    /** 分发页面加载完成事件 */
     fun notifyPageFinished(webView: WebView, url: String) {
         for (plugin in getEnabledPlugins()) {
             try {
@@ -138,7 +124,6 @@ class PluginManager private constructor(private val context: Context) {
         injectJavaScript(webView)
     }
 
-    /** 分发页面开始加载事件 */
     fun notifyPageStarted(webView: WebView, url: String) {
         for (plugin in getEnabledPlugins()) {
             try {
@@ -149,7 +134,6 @@ class PluginManager private constructor(private val context: Context) {
         }
     }
 
-    /** 收集所有启用插件的 JavaScript 并注入 */
     private fun injectJavaScript(webView: WebView) {
         val scripts = getEnabledPlugins().mapNotNull { plugin ->
             try {

@@ -1,11 +1,7 @@
-package com.example.simplebrowser.plugin
+package com.knowlily.browser.plugin
 
 import android.webkit.WebView
 
-/**
- * 简易广告拦截插件。
- * 通过域名黑名单拦截常见广告/追踪请求，同时阻止已拦截页面加载后续资源。
- */
 class AdBlockerPlugin : BrowserPlugin {
 
     override val id = "adblocker"
@@ -44,7 +40,6 @@ class AdBlockerPlugin : BrowserPlugin {
     }
 
     override fun onPageFinished(webView: WebView, url: String) {
-        // 注入隐藏常见广告元素的脚本
         val script = """
 (function(){
   var selectors=['[id*=ad]','[class*=ad]','[id*=banner]','[class*=banner]',

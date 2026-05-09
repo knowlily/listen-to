@@ -1,4 +1,4 @@
-package com.example.simplebrowser.plugin
+package com.knowlily.browser.plugin
 
 import android.content.Context
 import android.util.Log
@@ -15,13 +15,11 @@ class UserPluginRepository(private val context: Context) {
     private val dir: File
         get() = File(context.filesDir, PLUGINS_DIR).also { it.mkdirs() }
 
-    /** 加载所有已安装的用户插件 */
     fun loadAll(): List<UserPlugin> {
         val files = dir.listFiles { f -> f.extension == "json" } ?: return emptyList()
         return files.mapNotNull { loadFromFile(it) }
     }
 
-    /** 保存用户插件到文件 */
     fun save(config: UserPluginConfig) {
         val json = JSONObject().apply {
             put("id", config.id)
@@ -40,14 +38,12 @@ class UserPluginRepository(private val context: Context) {
         Log.d(TAG, "Saved plugin: ${config.id}")
     }
 
-    /** 删除用户插件文件 */
     fun delete(id: String): Boolean {
         val deleted = File(dir, "$id.json").delete()
         if (deleted) Log.d(TAG, "Deleted plugin: $id")
         return deleted
     }
 
-    /** 检查插件文件是否存在 */
     fun exists(id: String): Boolean = File(dir, "$id.json").exists()
 
     private fun loadFromFile(file: File): UserPlugin? {
@@ -85,7 +81,6 @@ class UserPluginRepository(private val context: Context) {
         }
     }
 
-    /** 从 JSON 字符串解析插件配置（用于安装） */
     fun parseConfig(jsonString: String): UserPluginConfig? {
         return try {
             val json = JSONObject(jsonString.trim())

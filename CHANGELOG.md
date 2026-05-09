@@ -5,8 +5,27 @@
 GitHub Releases: https://github.com/knowlily/listen-to/releases
 
 ## 当前版本
-- **最新版本**: 1.9 (versionCode 10)
-- **构建日期**: 2026-05-08
+- **最新版本**: 1.10 (versionCode 11)
+- **构建日期**: 2026-05-10
+
+## [1.10.0] - 2026-05-10
+
+### 重大重构
+- **包名变更**: `com.example.simplebrowser` → `com.knowlily.browser`
+- **架构分层**: 引入 ViewModel + Repository 架构，SharedPreferences 操作抽离至 Repository 层，旋转屏幕不丢数据
+- **单 Activity 架构**: 4 个 Activity 合并为 1 个 Activity + 4 个 Fragment，Tab 切换更流畅，WebView 实例共享不销毁
+
+### 新增
+- SettingsRepository、HistoryRepository、BookmarksRepository — 数据持久化层
+- BrowserViewModel、HistoryViewModel、BookmarksViewModel、SettingsViewModel — 状态管理层
+- BrowserFragment、HistoryFragment、BookmarksFragment、SettingsFragment — UI 层
+
+### 改进
+- 底部导航栏 show/hide 通过 ViewModel 联动，Fragment 滚动带动 MainActivity 底部栏动画
+- Fragment 间通过 shared ViewModel (activityViewModels) 通讯，无需 Intent 传参
+- WebView 配置变更时保存/恢复状态 (saveState/restoreState)
+- 项目结构模块化：model/ui/viewmodel/repository/adapter/plugin 分层清晰
+- README 更新至新架构说明
 
 ## [1.9.0] - 2026-05-08
 

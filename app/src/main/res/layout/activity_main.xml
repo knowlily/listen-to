@@ -1,121 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:layout_height="match_parent">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent" />
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            app:title="@string/app_name"
-            app:titleTextAppearance="@style/ToolbarTitle" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- 主内容区域：地址栏 + 进度条 + WebView -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardAddressBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="6dp"
-            android:layout_marginEnd="12dp"
-            android:layout_marginBottom="2dp"
-            app:cardCornerRadius="18dp"
-            app:cardElevation="2dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="2dp">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnBack"
-                    style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="2dp"
-                    android:contentDescription="@string/back"
-                    app:icon="@drawable/ic_back"
-                    app:iconTint="@color/on_surface"
-                    app:iconSize="20dp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnForward"
-                    style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="4dp"
-                    android:contentDescription="@string/forward"
-                    app:icon="@drawable/ic_forward"
-                    app:iconTint="@color/on_surface"
-                    app:iconSize="20dp" />
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/urlInputLayout"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
-                    android:layout_weight="1"
-                    app:endIconMode="clear_text"
-                    app:placeholderText="@string/enter_url">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etUrl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionGo"
-                        android:inputType="textUri"
-                        android:singleLine="true" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnRefresh"
-                    style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:contentDescription="@string/refresh"
-                    app:icon="@drawable/ic_refresh"
-                    app:iconTint="@color/on_surface"
-                    app:iconSize="20dp" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.progressindicator.LinearProgressIndicator
-            android:id="@+id/progressBar"
-            android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:visibility="gone"
-            app:indicatorColor="@color/primary" />
-
-        <WebView
-            android:id="@+id/webView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-    </LinearLayout>
-
-    <!-- 悬浮底部导航栏 -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardBottomBar"
         android:layout_width="match_parent"
@@ -139,30 +32,5 @@
             app:labelVisibilityMode="selected" />
 
     </com.google.android.material.card.MaterialCardView>
-
-    <!-- 弹窗容器 -->
-    <FrameLayout
-        android:id="@+id/popupContainer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="?attr/colorSurface"
-        android:visibility="gone">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/popupToolbar"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_gravity="top"
-            app:navigationIcon="@drawable/ic_back"
-            app:title="弹窗"
-            app:titleTextAppearance="@style/ToolbarTitle" />
-
-        <FrameLayout
-            android:id="@+id/popupWebViewContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="44dp" />
-
-    </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

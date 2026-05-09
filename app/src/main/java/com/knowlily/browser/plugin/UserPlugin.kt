@@ -1,4 +1,4 @@
-package com.example.simplebrowser.plugin
+package com.knowlily.browser.plugin
 
 import android.util.Log
 import android.webkit.WebView
