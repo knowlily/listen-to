@@ -71,6 +71,9 @@
     <string name="suggestion_type_history">历史记录</string>
     <string name="suggestion_type_bookmark">书签</string>
 
+    <!-- 插件安装 -->
+    <string name="plugin_url_hint">https://example.com/plugin.json</string>
+
     <!-- 文件选择 -->
     <string name="choose_file">选择文件</string>
 </resources>

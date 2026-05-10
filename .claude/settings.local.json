@@ -1,7 +1,7 @@
 {
   "permissions": {
-    "additionalDirectories": [
-      "D:\\listen to\\app\\src\\main\\java\\com\\example"
+    "allow": [
+      "Bash(./gradlew assembleRelease)"
     ]
   }
 }

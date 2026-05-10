@@ -94,7 +94,7 @@ class SettingsFragment : Fragment() {
         }
 
         view.findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardAbout).setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/knowlily/listen-to")))
+            showAboutDialog()
         }
     }
 
@@ -277,7 +277,7 @@ class SettingsFragment : Fragment() {
 
     private fun showUrlInstallDialog() {
         val input = EditText(requireContext()).apply {
-            hint = "https://example.com/plugin.json"
+            hint = getString(R.string.plugin_url_hint)
             inputType = android.text.InputType.TYPE_TEXT_VARIATION_URI
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
@@ -331,6 +331,21 @@ class SettingsFragment : Fragment() {
                 Snackbar.make(requireView(), getString(R.string.plugin_install_failed, e.localizedMessage), Snackbar.LENGTH_LONG).show()
             }
         )
+    }
+
+    private fun showAboutDialog() {
+        val aboutView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_about, null)
+        aboutView.findViewById<TextView>(R.id.tvAboutVersion).text =
+            "${getString(R.string.app_name)} v2.2"
+        aboutView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAboutGitHub)
+            .setOnClickListener {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/knowlily/listen-to")))
+            }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setView(aboutView)
+            .setPositiveButton("关闭", null)
+            .show()
     }
 
     private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()

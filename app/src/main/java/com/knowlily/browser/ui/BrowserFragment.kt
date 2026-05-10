@@ -338,6 +338,7 @@ class BrowserFragment : Fragment() {
             val dy = scrollY - oldScrollY
             if (dy > scrollThreshold && !isNavigationHidden) hideNavigation()
             else if (dy < -scrollThreshold && isNavigationHidden) showNavigation()
+            swipeRefresh.isEnabled = scrollY == 0
         }
     }
 
@@ -402,6 +403,11 @@ class BrowserFragment : Fragment() {
         btnForward.setOnClickListener { currentWebView?.goForward() }
         btnRefresh.setOnClickListener { currentWebView?.reload() }
 
+        etUrl.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                browserViewModel.clearSuggestions()
+            }
+        }
         etUrl.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_GO) {
                 browserViewModel.clearSuggestions()
