@@ -30,7 +30,7 @@
                 android:id="@+id/tvAboutVersion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="listen x v2.2"
+                android:text="listen x v2.3"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="?attr/colorOnSurface" />

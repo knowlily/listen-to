@@ -25,6 +25,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.knowlily.browser.R
+import com.knowlily.browser.plugin.UserscriptParser
 import com.knowlily.browser.viewmodel.BrowserViewModel
 import com.knowlily.browser.viewmodel.SettingsViewModel
 
@@ -304,7 +305,7 @@ class SettingsFragment : Fragment() {
         settingsViewModel.installFromUrl(urlString) { result ->
             dialog.dismiss()
             result.fold(
-                onSuccess = { json -> installPlugin(json) },
+                onSuccess = { content -> installContent(content) },
                 onFailure = { e ->
                     Snackbar.make(requireView(), getString(R.string.download_failed_msg, e.localizedMessage ?: ""), Snackbar.LENGTH_LONG).show()
                 }
@@ -314,11 +315,26 @@ class SettingsFragment : Fragment() {
 
     private fun installFromFileUri(uri: Uri) {
         try {
-            val json = requireContext().contentResolver.openInputStream(uri)
+            val content = requireContext().contentResolver.openInputStream(uri)
                 ?.bufferedReader()?.readText() ?: ""
-            if (json.isNotBlank()) installPlugin(json)
+            if (content.isNotBlank()) installContent(content)
         } catch (e: Exception) {
             Snackbar.make(requireView(), getString(R.string.read_file_failed, e.localizedMessage), Snackbar.LENGTH_LONG).show()
+        }
+    }
+
+    private fun installContent(content: String) {
+        if (UserscriptParser.isUserscript(content)) {
+            settingsViewModel.installUserscript(content).fold(
+                onSuccess = {
+                    Snackbar.make(requireView(), getString(R.string.userscript_installed), Snackbar.LENGTH_SHORT).show()
+                },
+                onFailure = { e ->
+                    Snackbar.make(requireView(), getString(R.string.plugin_install_failed, e.localizedMessage), Snackbar.LENGTH_LONG).show()
+                }
+            )
+        } else {
+            installPlugin(content)
         }
     }
 
@@ -336,7 +352,7 @@ class SettingsFragment : Fragment() {
     private fun showAboutDialog() {
         val aboutView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_about, null)
         aboutView.findViewById<TextView>(R.id.tvAboutVersion).text =
-            "${getString(R.string.app_name)} v2.2"
+            "${getString(R.string.app_name)} v2.3"
         aboutView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAboutGitHub)
             .setOnClickListener {
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/knowlily/listen-to")))

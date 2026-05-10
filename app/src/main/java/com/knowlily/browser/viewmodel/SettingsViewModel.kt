@@ -60,6 +60,12 @@ class SettingsViewModel @Inject constructor(
         return result
     }
 
+    fun installUserscript(jsContent: String): Result<String> {
+        val result = pluginManager.installUserscript(jsContent)
+        result.onSuccess { refreshPlugins() }
+        return result
+    }
+
     fun uninstallPlugin(id: String): Boolean {
         val result = pluginManager.uninstallUserPlugin(id)
         if (result) refreshPlugins()

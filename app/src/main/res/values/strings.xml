@@ -76,4 +76,8 @@
 
     <!-- 文件选择 -->
     <string name="choose_file">选择文件</string>
+
+    <!-- 用户脚本 -->
+    <string name="userscript_installed">用户脚本已安装</string>
+    <string name="userscript_invalid_header">无效的用户脚本头部</string>
 </resources>

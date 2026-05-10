@@ -33,6 +33,24 @@ class UserPluginRepository(private val context: Context) {
             if (config.matchPatterns.isNotEmpty()) {
                 put("matchPatterns", org.json.JSONArray(config.matchPatterns))
             }
+            if (config.grantList.isNotEmpty()) {
+                put("grantList", org.json.JSONArray(config.grantList))
+            }
+            if (config.requireUrls.isNotEmpty()) {
+                put("requireUrls", org.json.JSONArray(config.requireUrls))
+            }
+            if (config.resourceMap.isNotEmpty()) {
+                put("resourceMap", JSONObject(config.resourceMap))
+            }
+            if (config.runAt != "document-end") {
+                put("runAt", config.runAt)
+            }
+            if (config.excludePatterns.isNotEmpty()) {
+                put("excludePatterns", org.json.JSONArray(config.excludePatterns))
+            }
+            if (config.includePatterns.isNotEmpty()) {
+                put("includePatterns", org.json.JSONArray(config.includePatterns))
+            }
         }
         File(dir, "${config.id}.json").writeText(json.toString(2))
         Log.d(TAG, "Saved plugin: ${config.id}")
@@ -49,31 +67,7 @@ class UserPluginRepository(private val context: Context) {
     private fun loadFromFile(file: File): UserPlugin? {
         return try {
             val json = JSONObject(file.readText())
-            val type = when (json.optString("type", "javascript").lowercase()) {
-                "css" -> PluginType.CSS
-                "adblock" -> PluginType.ADBLOCK
-                else -> PluginType.JAVASCRIPT
-            }
-            val injectAt = when (json.optString("injectAt", "page_finished").lowercase()) {
-                "page_started" -> InjectAt.PAGE_STARTED
-                else -> InjectAt.PAGE_FINISHED
-            }
-            val patterns = mutableListOf<String>()
-            val arr = json.optJSONArray("matchPatterns")
-            if (arr != null) {
-                for (i in 0 until arr.length()) patterns.add(arr.getString(i))
-            }
-            val config = UserPluginConfig(
-                id = json.getString("id"),
-                name = json.getString("name"),
-                description = json.optString("description", ""),
-                version = json.optString("version", "1.0"),
-                type = type,
-                content = json.getString("content"),
-                matchPatterns = patterns,
-                injectAt = injectAt,
-                enabled = json.optBoolean("enabled", true)
-            )
+            val config = jsonToConfig(json)
             UserPlugin(config)
         } catch (e: Exception) {
             Log.w(TAG, "Failed to load plugin from ${file.name}: ${e.message}")
@@ -83,35 +77,84 @@ class UserPluginRepository(private val context: Context) {
 
     fun parseConfig(jsonString: String): UserPluginConfig? {
         return try {
-            val json = JSONObject(jsonString.trim())
-            val type = when (json.optString("type", "javascript").lowercase()) {
-                "css" -> PluginType.CSS
-                "adblock" -> PluginType.ADBLOCK
-                else -> PluginType.JAVASCRIPT
-            }
-            val injectAt = when (json.optString("injectAt", "page_finished").lowercase()) {
-                "page_started" -> InjectAt.PAGE_STARTED
-                else -> InjectAt.PAGE_FINISHED
-            }
-            val patterns = mutableListOf<String>()
-            val arr = json.optJSONArray("matchPatterns")
-            if (arr != null) {
-                for (i in 0 until arr.length()) patterns.add(arr.getString(i))
-            }
-            UserPluginConfig(
-                id = json.getString("id"),
-                name = json.getString("name"),
-                description = json.optString("description", ""),
-                version = json.optString("version", "1.0"),
-                type = type,
-                content = json.getString("content"),
-                matchPatterns = patterns,
-                injectAt = injectAt,
-                enabled = json.optBoolean("enabled", true)
-            )
+            jsonToConfig(JSONObject(jsonString.trim()))
         } catch (e: Exception) {
             Log.w(TAG, "Failed to parse plugin JSON: ${e.message}")
             null
         }
+    }
+
+    /** Parse a .user.js content string into a UserPluginConfig */
+    fun parseUserscriptContent(jsContent: String): UserPluginConfig? {
+        val meta = UserscriptParser.parse(jsContent) ?: return null
+        val code = UserscriptParser.extractCode(jsContent)
+        val id = "userscript_" + meta.name.lowercase()
+            .replace(Regex("[^a-z0-9]"), "_")
+            .replace(Regex("_+"), "_")
+            .trim('_')
+
+        return UserPluginConfig(
+            id = id,
+            name = meta.name,
+            description = meta.description,
+            version = meta.version,
+            type = PluginType.USERSCRIPT,
+            content = code,
+            matchPatterns = meta.matchPatterns,
+            injectAt = if (meta.runAt == "document-start") InjectAt.PAGE_STARTED else InjectAt.PAGE_FINISHED,
+            enabled = true,
+            grantList = meta.grantList,
+            requireUrls = meta.requireUrls,
+            resourceMap = meta.resourceMap,
+            runAt = meta.runAt,
+            excludePatterns = meta.excludePatterns,
+            includePatterns = meta.includePatterns
+        )
+    }
+
+    private fun jsonToConfig(json: JSONObject): UserPluginConfig {
+        val type = when (json.optString("type", "javascript").lowercase()) {
+            "css" -> PluginType.CSS
+            "adblock" -> PluginType.ADBLOCK
+            "userscript" -> PluginType.USERSCRIPT
+            else -> PluginType.JAVASCRIPT
+        }
+        val injectAt = when (json.optString("injectAt", "page_finished").lowercase()) {
+            "page_started" -> InjectAt.PAGE_STARTED
+            else -> InjectAt.PAGE_FINISHED
+        }
+
+        fun jsonArrayToList(key: String): List<String> {
+            val arr = json.optJSONArray(key) ?: return emptyList()
+            return (0 until arr.length()).map { arr.getString(it) }
+        }
+
+        val resourceMap = mutableMapOf<String, String>()
+        val rmObj = json.optJSONObject("resourceMap")
+        if (rmObj != null) {
+            val keys = rmObj.keys()
+            while (keys.hasNext()) {
+                val k = keys.next()
+                resourceMap[k] = rmObj.getString(k)
+            }
+        }
+
+        return UserPluginConfig(
+            id = json.getString("id"),
+            name = json.getString("name"),
+            description = json.optString("description", ""),
+            version = json.optString("version", "1.0"),
+            type = type,
+            content = json.getString("content"),
+            matchPatterns = jsonArrayToList("matchPatterns"),
+            injectAt = injectAt,
+            enabled = json.optBoolean("enabled", true),
+            grantList = jsonArrayToList("grantList"),
+            requireUrls = jsonArrayToList("requireUrls"),
+            resourceMap = resourceMap,
+            runAt = json.optString("runAt", "document-end"),
+            excludePatterns = jsonArrayToList("excludePatterns"),
+            includePatterns = jsonArrayToList("includePatterns")
+        )
     }
 }

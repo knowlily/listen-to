@@ -43,6 +43,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.knowlily.browser.R
 import com.knowlily.browser.adapter.TabAdapter
+import com.knowlily.browser.plugin.GMBridge
 import com.knowlily.browser.viewmodel.BrowserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -206,6 +207,7 @@ class BrowserFragment : Fragment() {
             }
         }
         wv.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+        wv.addJavascriptInterface(GMBridge(requireContext(), wv), "__gm_bridge")
 
         wv.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -291,6 +293,7 @@ class BrowserFragment : Fragment() {
                     allowFileAccess = false
                     mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
                 }
+                newWebView.addJavascriptInterface(GMBridge(requireContext(), newWebView), "__gm_bridge")
                 newWebView.webViewClient = object : WebViewClient() {
                     override fun onPageFinished(v: WebView?, url: String?) {
                         resultMsg?.let {
