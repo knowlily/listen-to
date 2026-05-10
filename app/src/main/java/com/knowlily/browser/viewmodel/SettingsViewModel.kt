@@ -6,10 +6,18 @@ import android.webkit.WebStorage
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.knowlily.browser.plugin.BrowserPlugin
 import com.knowlily.browser.plugin.PluginManager
 import com.knowlily.browser.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
 import javax.inject.Inject
 
 @HiltViewModel
@@ -73,5 +81,26 @@ class SettingsViewModel @Inject constructor(
 
     fun refreshPlugins() {
         plugins.value = pluginManager.getPlugins()
+    }
+
+    fun installFromUrl(urlString: String, callback: (Result<String>) -> Unit) {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                try {
+                    val conn = (URL(urlString).openConnection() as HttpURLConnection).apply {
+                        connectTimeout = 10000
+                        readTimeout = 10000
+                    }
+                    val reader = BufferedReader(InputStreamReader(conn.inputStream, "UTF-8"))
+                    val json = reader.readText()
+                    reader.close()
+                    conn.disconnect()
+                    Result.success(json)
+                } catch (e: Exception) {
+                    Result.failure<String>(e)
+                }
+            }
+            callback(result)
+        }
     }
 }

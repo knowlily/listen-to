@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.DynamicColors
@@ -15,7 +16,7 @@ import com.knowlily.browser.ui.HistoryFragment
 import com.knowlily.browser.ui.BookmarksFragment
 import com.knowlily.browser.ui.SettingsFragment
 import com.knowlily.browser.viewmodel.BrowserViewModel
-import com.knowlily.browser.repository.SettingsRepository
+import com.knowlily.browser.di.SettingsRepositoryEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -32,8 +33,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Apply saved theme before super.onCreate
-        val settingsRepo = SettingsRepository.getInstance(applicationContext)
-        AppCompatDelegate.setDefaultNightMode(settingsRepo.getThemeMode())
+        val entryPoint = EntryPointAccessors.fromApplication(
+            applicationContext, SettingsRepositoryEntryPoint::class.java
+        )
+        AppCompatDelegate.setDefaultNightMode(entryPoint.settingsRepository().getThemeMode())
 
         super.onCreate(savedInstanceState)
 

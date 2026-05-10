@@ -13,8 +13,8 @@ android {
         applicationId "com.knowlily.browser"
         minSdk 24
         targetSdk 34
-        versionCode 13
-        versionName "2.1"
+        versionCode 14
+        versionName "2.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -25,23 +25,17 @@ android {
             def signingPropertiesFile = rootProject.file('signing.properties')
             if (signingPropertiesFile.exists()) {
                 signingProperties.load(new FileInputStream(signingPropertiesFile))
-                storeFile file(signingProperties['storeFile'] ?: 'keystore.jks')
-                storePassword signingProperties['storePassword'] ?: '***REMOVED***'
-                keyAlias signingProperties['keyAlias'] ?: '***REMOVED***'
-                keyPassword signingProperties['keyPassword'] ?: '***REMOVED***'
-            } else {
-                // 如果没有配置文件，使用默认值（仅用于演示）
-                storeFile file('keystore.jks')
-                storePassword '***REMOVED***'
-                keyAlias '***REMOVED***'
-                keyPassword '***REMOVED***'
+                storeFile file(signingProperties['storeFile'])
+                storePassword signingProperties['storePassword']
+                keyAlias signingProperties['keyAlias']
+                keyPassword signingProperties['keyPassword']
             }
         }
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }

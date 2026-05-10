@@ -27,10 +27,6 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.knowlily.browser.R
 import com.knowlily.browser.viewmodel.BrowserViewModel
 import com.knowlily.browser.viewmodel.SettingsViewModel
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.HttpURLConnection
-import java.net.URL
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
@@ -105,7 +101,7 @@ class SettingsFragment : Fragment() {
     private fun setupButtonListeners() {
         btnClearCache.setOnClickListener {
             settingsViewModel.clearCache(requireContext())
-            Snackbar.make(requireView(), "缓存已清除", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(requireView(), getString(R.string.cache_cleared), Snackbar.LENGTH_SHORT).show()
         }
 
         btnThemeLight.setOnClickListener {
@@ -229,7 +225,7 @@ class SettingsFragment : Fragment() {
             val descView = TextView(requireContext()).apply {
                 text = if (settingsViewModel.isBuiltinPlugin(plugin.id))
                     "${plugin.description}  v${plugin.version}"
-                else "${plugin.description}  v${plugin.version}  (用户安装)"
+                else "${plugin.description}  v${plugin.version}  ${getString(R.string.user_installed)}"
                 textSize = 12f
                 setTextColor(ContextCompat.getColor(requireContext(), R.color.on_surface_variant))
             }
@@ -249,7 +245,7 @@ class SettingsFragment : Fragment() {
 
             if (!settingsViewModel.isBuiltinPlugin(plugin.id)) {
                 val uninstallBtn = MaterialButton(requireContext()).apply {
-                    text = "卸载"; textSize = 12f
+                    text = context.getString(R.string.uninstall); textSize = 12f
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
                     ).apply { marginStart = dpToPx(8) }
@@ -269,13 +265,13 @@ class SettingsFragment : Fragment() {
 
     private fun confirmUninstall(id: String, name: String) {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("卸载插件")
-            .setMessage("确定要卸载「$name」吗？")
-            .setPositiveButton("卸载") { _, _ ->
+            .setTitle(getString(R.string.uninstall_plugin))
+            .setMessage(getString(R.string.confirm_uninstall_message, name))
+            .setPositiveButton(getString(R.string.uninstall)) { _, _ ->
                 settingsViewModel.uninstallPlugin(id)
-                Snackbar.make(requireView(), "插件已卸载", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), getString(R.string.plugin_uninstalled), Snackbar.LENGTH_SHORT).show()
             }
-            .setNegativeButton("取消", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -289,42 +285,31 @@ class SettingsFragment : Fragment() {
         }
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("从 URL 安装插件")
-            .setMessage("输入插件 JSON 配置文件的 URL 地址")
+            .setTitle(getString(R.string.install_from_url))
+            .setMessage(getString(R.string.install_from_url_message))
             .setView(input)
-            .setPositiveButton("安装") { _, _ ->
+            .setPositiveButton(getString(R.string.install)) { _, _ ->
                 val url = input.text.toString().trim()
                 if (url.isNotEmpty()) installFromUrl(url)
             }
-            .setNegativeButton("取消", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
     private fun installFromUrl(urlString: String) {
         val dialog = AlertDialog.Builder(requireContext())
-            .setTitle("正在下载...").setMessage("请稍候").setCancelable(false).create()
+            .setTitle(getString(R.string.downloading)).setMessage(getString(R.string.please_wait)).setCancelable(false).create()
         dialog.show()
 
-        Thread {
-            try {
-                val conn = (URL(urlString).openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 10000; readTimeout = 10000
+        settingsViewModel.installFromUrl(urlString) { result ->
+            dialog.dismiss()
+            result.fold(
+                onSuccess = { json -> installPlugin(json) },
+                onFailure = { e ->
+                    Snackbar.make(requireView(), getString(R.string.download_failed_msg, e.localizedMessage ?: ""), Snackbar.LENGTH_LONG).show()
                 }
-                val reader = BufferedReader(InputStreamReader(conn.inputStream, "UTF-8"))
-                val json = reader.readText()
-                reader.close(); conn.disconnect()
-
-                requireActivity().runOnUiThread {
-                    dialog.dismiss()
-                    installPlugin(json)
-                }
-            } catch (e: Exception) {
-                requireActivity().runOnUiThread {
-                    dialog.dismiss()
-                    Snackbar.make(requireView(), "下载失败: ${e.localizedMessage}", Snackbar.LENGTH_LONG).show()
-                }
-            }
-        }.start()
+            )
+        }
     }
 
     private fun installFromFileUri(uri: Uri) {
@@ -333,17 +318,17 @@ class SettingsFragment : Fragment() {
                 ?.bufferedReader()?.readText() ?: ""
             if (json.isNotBlank()) installPlugin(json)
         } catch (e: Exception) {
-            Snackbar.make(requireView(), "读取文件失败: ${e.localizedMessage}", Snackbar.LENGTH_LONG).show()
+            Snackbar.make(requireView(), getString(R.string.read_file_failed, e.localizedMessage), Snackbar.LENGTH_LONG).show()
         }
     }
 
     private fun installPlugin(json: String) {
         settingsViewModel.installPlugin(json).fold(
             onSuccess = {
-                Snackbar.make(requireView(), "插件安装成功", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), getString(R.string.plugin_install_success), Snackbar.LENGTH_SHORT).show()
             },
             onFailure = { e ->
-                Snackbar.make(requireView(), "安装失败: ${e.localizedMessage}", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(requireView(), getString(R.string.plugin_install_failed, e.localizedMessage), Snackbar.LENGTH_LONG).show()
             }
         )
     }

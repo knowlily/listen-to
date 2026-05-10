@@ -107,7 +107,9 @@ local.properties
 # Keystore files
 *.jks
 *.keystore
-*.properties
+
+# Signing credentials
+signing.properties
 
 # Room DB files (generated at runtime)
 *.db

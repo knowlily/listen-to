@@ -70,17 +70,17 @@ class BookmarksFragment : Fragment() {
             if (url.isNotEmpty() && url != "about:blank") {
                 bookmarksViewModel.addBookmark(url) { ok ->
                     Snackbar.make(requireView(),
-                        if (ok) "书签已添加" else "该书签已存在",
+                        if (ok) getString(R.string.bookmark_added) else getString(R.string.bookmark_already_exists),
                         Snackbar.LENGTH_SHORT).show()
                 }
             } else {
-                Snackbar.make(requireView(), "没有可添加的网址", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), getString(R.string.no_url_to_bookmark), Snackbar.LENGTH_SHORT).show()
             }
         }
 
         btnClearBookmarks.setOnClickListener {
             bookmarksViewModel.clearBookmarks()
-            Snackbar.make(requireView(), "书签已清除", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(requireView(), getString(R.string.bookmarks_cleared), Snackbar.LENGTH_SHORT).show()
         }
 
         btnExportBookmarks.setOnClickListener {
@@ -89,7 +89,7 @@ class BookmarksFragment : Fragment() {
                     type = "application/json"
                     putExtra(Intent.EXTRA_TEXT, json)
                 }
-                startActivity(Intent.createChooser(shareIntent, "导出书签"))
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.export_bookmarks)))
             }
         }
 
@@ -118,8 +118,8 @@ class BookmarksFragment : Fragment() {
 
         browserViewModel.currentUrl.observe(viewLifecycleOwner) { url ->
             tvCurrentUrl.text = if (!url.isNullOrEmpty() && url != "about:blank")
-                "当前网址: ${url.take(60)}${if (url.length > 60) "..." else ""}"
-            else "当前网址: 无"
+                getString(R.string.current_url_label, "${url.take(60)}${if (url.length > 60) "…" else ""}")
+            else getString(R.string.no_current_url)
         }
 
         browserViewModel.accentColor.observe(viewLifecycleOwner) { color ->
@@ -133,14 +133,14 @@ class BookmarksFragment : Fragment() {
             val json = requireContext().contentResolver.openInputStream(uri)
                 ?.bufferedReader()?.readText() ?: ""
             if (json.isBlank()) {
-                Snackbar.make(requireView(), "文件为空", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), getString(R.string.file_empty), Snackbar.LENGTH_SHORT).show()
                 return
             }
             bookmarksViewModel.importBookmarks(json) { count ->
-                Snackbar.make(requireView(), "已导入 $count 条书签", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), getString(R.string.bookmarks_imported, count), Snackbar.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Snackbar.make(requireView(), "导入失败: ${e.localizedMessage}", Snackbar.LENGTH_LONG).show()
+            Snackbar.make(requireView(), getString(R.string.import_failed, e.localizedMessage), Snackbar.LENGTH_LONG).show()
         }
     }
 

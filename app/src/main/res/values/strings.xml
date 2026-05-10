@@ -1,16 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">listen x</string>
-    <string name="back">后退</string>
-    <string name="forward">前进</string>
-    <string name="refresh">刷新</string>
-    <string name="enter_url">输入网址</string>
-    <string name="go">前往</string>
-    <string name="home">主页</string>
-    <string name="bookmarks">书签</string>
-    <string name="history">历史记录</string>
-    <string name="settings">设置</string>
-    <string name="loading">加载中...</string>
-    <string name="error_loading_page">加载页面出错</string>
-    <string name="no_internet">无网络连接</string>
+    <string name="back">Back</string>
+    <string name="forward">Forward</string>
+    <string name="refresh">Refresh</string>
+    <string name="enter_url">Enter URL</string>
+    <string name="go">Go</string>
+    <string name="home">Home</string>
+    <string name="bookmarks">Bookmarks</string>
+    <string name="history">History</string>
+    <string name="settings">Settings</string>
+    <string name="loading">Loading…</string>
+    <string name="error_loading_page">Error loading page</string>
+    <string name="no_internet">No internet connection</string>
+
+    <!-- SSL errors -->
+    <string name="ssl_untrusted">Certificate is not trusted</string>
+    <string name="ssl_expired">Certificate has expired</string>
+    <string name="ssl_id_mismatch">Certificate hostname mismatch</string>
+    <string name="ssl_not_yet_valid">Certificate is not yet valid</string>
+    <string name="ssl_generic_error">SSL certificate error</string>
+
+    <!-- Tab management -->
+    <string name="max_tabs_reached">Maximum 20 tabs</string>
+    <string name="new_tab">New tab</string>
+
+    <!-- Bookmarks -->
+    <string name="bookmark_added">Bookmark added</string>
+
+    <!-- Cache -->
+    <string name="cache_cleared">Cache cleared</string>
+
+    <!-- Downloads -->
+    <string name="download_started">Download started</string>
+    <string name="download_failed">Download failed: %s</string>
+
+    <!-- Plugins -->
+    <string name="plugin_install_success">Plugin installed</string>
+    <string name="plugin_install_failed">Install failed: %s</string>
+    <string name="plugin_uninstalled">Plugin uninstalled</string>
+    <string name="plugin_already_exists">Plugin already exists: %s</string>
+    <string name="plugin_invalid_json">Plugin JSON format invalid</string>
+    <string name="plugin_builtin_cannot_uninstall">Built-in plugins cannot be uninstalled</string>
+    <string name="uninstall_plugin">Uninstall plugin</string>
+    <string name="confirm_uninstall_message">Uninstall "%s"?</string>
+    <string name="uninstall">Uninstall</string>
+    <string name="cancel">Cancel</string>
+    <string name="install_from_url">Install plugin from URL</string>
+    <string name="install_from_url_message">Enter the URL of a plugin JSON config file</string>
+    <string name="install">Install</string>
+    <string name="downloading">Downloading…</string>
+    <string name="please_wait">Please wait</string>
+    <string name="download_failed_msg">Download failed: %s</string>
+    <string name="read_file_failed">Failed to read file: %s</string>
+    <string name="user_installed">(user-installed)</string>
+
+    <!-- Suggestions -->
+    <string name="suggestion_type_history">History</string>
+    <string name="suggestion_type_bookmark">Bookmark</string>
+
+    <!-- File chooser -->
+    <string name="choose_file">Choose file</string>
+
+    <!-- Bookmarks -->
+    <string name="bookmark_already_exists">Bookmark already exists</string>
+    <string name="no_url_to_bookmark">No URL to bookmark</string>
+    <string name="bookmarks_cleared">Bookmarks cleared</string>
+    <string name="export_bookmarks">Export bookmarks</string>
+    <string name="current_url_label">Current URL: %s</string>
+    <string name="no_current_url">Current URL: none</string>
+    <string name="file_empty">File is empty</string>
+    <string name="bookmarks_imported">Imported %d bookmarks</string>
+    <string name="import_failed">Import failed: %s</string>
+
+    <!-- History -->
+    <string name="history_cleared">History cleared</string>
 </resources>

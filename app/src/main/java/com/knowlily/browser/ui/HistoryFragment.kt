@@ -51,7 +51,7 @@ class HistoryFragment : Fragment() {
 
         btnClearHistory.setOnClickListener {
             historyViewModel.clearHistory()
-            Snackbar.make(requireView(), "历史记录已清除", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(requireView(), getString(R.string.history_cleared), Snackbar.LENGTH_SHORT).show()
         }
     }
 

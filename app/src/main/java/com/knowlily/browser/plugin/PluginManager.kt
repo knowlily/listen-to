@@ -3,27 +3,29 @@ package com.knowlily.browser.plugin
 import android.content.Context
 import android.webkit.WebView
 import android.util.Log
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PluginManager private constructor(private val context: Context) {
+@Singleton
+class PluginManager @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
 
     companion object {
         private const val TAG = "PluginManager"
         private const val PREFS_NAME = "plugin_settings"
-
-        @Volatile
-        private var instance: PluginManager? = null
-
-        fun getInstance(context: Context): PluginManager {
-            return instance ?: synchronized(this) {
-                instance ?: PluginManager(context.applicationContext).also { instance = it }
-            }
-        }
-
         private val BUILTIN_IDS = setOf("adblocker", "darkmode")
     }
 
     private val plugins = mutableMapOf<String, BrowserPlugin>()
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    init {
+        registerPlugin(AdBlockerPlugin())
+        registerPlugin(DarkModePlugin())
+        loadUserPlugins()
+    }
 
     fun registerPlugin(plugin: BrowserPlugin) {
         if (plugins.containsKey(plugin.id)) {
@@ -54,9 +56,9 @@ class PluginManager private constructor(private val context: Context) {
     fun installPlugin(jsonString: String): Result<String> {
         val repo = UserPluginRepository(context)
         val config = repo.parseConfig(jsonString)
-            ?: return Result.failure(IllegalArgumentException("插件 JSON 格式无效"))
+            ?: return Result.failure(IllegalArgumentException("Plugin JSON format invalid"))
         if (plugins.containsKey(config.id)) {
-            return Result.failure(IllegalStateException("插件已存在: ${config.id}"))
+            return Result.failure(IllegalStateException("Plugin already exists: ${config.id}"))
         }
         val plugin = UserPlugin(config)
         repo.save(config)

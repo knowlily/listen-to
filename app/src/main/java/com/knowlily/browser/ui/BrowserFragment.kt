@@ -207,10 +207,6 @@ class BrowserFragment : Fragment() {
         }
         wv.setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
-        if (isIncognito) {
-            CookieManager.getInstance().setAcceptCookie(false)
-        }
-
         wv.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 url?.let {
@@ -252,19 +248,17 @@ class BrowserFragment : Fragment() {
             }
 
             override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler, error: SslError?) {
+                handler.cancel()
                 val message = when (error?.primaryError) {
-                    SslError.SSL_UNTRUSTED -> "证书不受信任"
-                    SslError.SSL_EXPIRED -> "证书已过期"
-                    SslError.SSL_IDMISMATCH -> "证书域名不匹配"
-                    SslError.SSL_NOTYETVALID -> "证书尚未生效"
-                    else -> "SSL 证书错误"
+                    SslError.SSL_UNTRUSTED -> getString(R.string.ssl_untrusted)
+                    SslError.SSL_EXPIRED -> getString(R.string.ssl_expired)
+                    SslError.SSL_IDMISMATCH -> getString(R.string.ssl_id_mismatch)
+                    SslError.SSL_NOTYETVALID -> getString(R.string.ssl_not_yet_valid)
+                    else -> getString(R.string.ssl_generic_error)
                 }
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("安全警告")
-                    .setMessage("$message\n\n是否继续加载？")
-                    .setPositiveButton("继续") { _, _ -> handler.proceed() }
-                    .setNegativeButton("取消") { _, _ -> handler.cancel() }
-                    .show()
+                Snackbar.make(requireView(), message, Snackbar.LENGTH_LONG).show()
+                currentWebView?.visibility = View.GONE
+                errorView?.visibility = View.VISIBLE
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
@@ -291,8 +285,12 @@ class BrowserFragment : Fragment() {
 
             override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: android.os.Message?): Boolean {
                 val newWebView = WebView(requireContext())
-                newWebView.settings.javaScriptEnabled = true
-                newWebView.settings.domStorageEnabled = true
+                newWebView.settings.apply {
+                    javaScriptEnabled = true
+                    domStorageEnabled = true
+                    allowFileAccess = false
+                    mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
+                }
                 newWebView.webViewClient = object : WebViewClient() {
                     override fun onPageFinished(v: WebView?, url: String?) {
                         resultMsg?.let {
@@ -324,9 +322,9 @@ class BrowserFragment : Fragment() {
                 }
                 val dm = requireContext().getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
                 dm.enqueue(request)
-                Snackbar.make(requireView(), "下载已开始", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), getString(R.string.download_started), Snackbar.LENGTH_SHORT).show()
             } catch (e: Exception) {
-                Snackbar.make(requireView(), "下载失败: ${e.localizedMessage}", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), getString(R.string.download_failed, e.localizedMessage), Snackbar.LENGTH_SHORT).show()
             }
         }
 
@@ -360,6 +358,16 @@ class BrowserFragment : Fragment() {
         currentTabId = tabId
         val tab = browserViewModel.getActiveTab() ?: return
 
+        // Isolate cookie state per incognito/normal mode
+        if (tab.isIncognito) {
+            CookieManager.getInstance().apply {
+                flush()
+                setAcceptCookie(false)
+            }
+        } else {
+            CookieManager.getInstance().setAcceptCookie(true)
+        }
+
         // Create or restore WebView
         val wv = createWebView()
         configureWebView(wv, tab.isIncognito)
@@ -383,11 +391,6 @@ class BrowserFragment : Fragment() {
         while (webViewStates.size > maxSavedStates) {
             val oldestKey = webViewStates.keys.firstOrNull { it != tabId && it != currentTabId }
             if (oldestKey != null) webViewStates.remove(oldestKey) else break
-        }
-
-        // Restore cookie acceptance for normal tabs
-        if (!tab.isIncognito) {
-            CookieManager.getInstance().setAcceptCookie(true)
         }
 
         browserViewModel.canGoBack.value = wv.canGoBack()
@@ -462,7 +465,7 @@ class BrowserFragment : Fragment() {
         }
 
         browserViewModel.maxTabReached.observe(viewLifecycleOwner) {
-            Toast.makeText(requireContext(), "最多同时打开 20 个标签页", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.max_tabs_reached), Toast.LENGTH_SHORT).show()
         }
 
         browserViewModel.suggestions.observe(viewLifecycleOwner) { suggestions ->
@@ -591,7 +594,10 @@ class SuggestionAdapter(
 
         fun bind(item: com.knowlily.browser.viewmodel.SuggestItem, onClick: (com.knowlily.browser.viewmodel.SuggestItem) -> Unit) {
             tvUrl.text = item.url
-            tvType.text = if (item.type == com.knowlily.browser.viewmodel.SuggestType.HISTORY) "历史记录" else "书签"
+            tvType.text = if (item.type == com.knowlily.browser.viewmodel.SuggestType.HISTORY)
+                itemView.context.getString(R.string.suggestion_type_history)
+            else
+                itemView.context.getString(R.string.suggestion_type_bookmark)
             itemView.setOnClickListener { onClick(item) }
         }
     }

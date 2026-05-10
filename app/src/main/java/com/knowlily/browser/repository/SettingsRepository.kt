@@ -3,10 +3,16 @@ package com.knowlily.browser.repository
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.MutableLiveData
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SettingsRepository private constructor(context: Context) {
+@Singleton
+class SettingsRepository @Inject constructor(
+    @ApplicationContext context: Context
+) {
 
-    private val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     val themeMode = MutableLiveData(getThemeMode())
     val accentColor = MutableLiveData(getAccentColor())
@@ -45,15 +51,6 @@ class SettingsRepository private constructor(context: Context) {
     }
 
     companion object {
-        @Volatile
-        private var INSTANCE: SettingsRepository? = null
-
-        fun getInstance(context: Context): SettingsRepository {
-            return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: SettingsRepository(context.applicationContext).also { INSTANCE = it }
-            }
-        }
-
         const val PREFS_NAME = "app_settings"
         const val KEY_THEME_MODE = "theme_mode"
         const val KEY_ACCENT_COLOR = "accent_color"
