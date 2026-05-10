@@ -108,3 +108,8 @@ local.properties
 *.jks
 *.keystore
 *.properties
+
+# Room DB files (generated at runtime)
+*.db
+*.db-shm
+*.db-wal

@@ -1,35 +1,22 @@
 package com.knowlily.browser.repository
 
-import android.content.Context
-import androidx.lifecycle.MutableLiveData
+import com.knowlily.browser.data.HistoryDao
 import com.knowlily.browser.model.HistoryItem
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class HistoryRepository(context: Context) {
+@Singleton
+class HistoryRepository @Inject constructor(
+    private val dao: HistoryDao
+) {
+    val historyFlow: Flow<List<HistoryItem>> = dao.getAllFlow()
 
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-
-    val historyList = MutableLiveData<List<HistoryItem>>(emptyList())
-
-    fun save(url: String) {
-        prefs.edit().putString(System.currentTimeMillis().toString(), url).apply()
-        loadAll()
+    suspend fun save(url: String) {
+        dao.insert(HistoryItem(url = url, timestamp = System.currentTimeMillis()))
     }
 
-    fun loadAll() {
-        val items = prefs.all.mapNotNull { (key, value) ->
-            if (value !is String) return@mapNotNull null
-            val ts = key.toLongOrNull() ?: System.currentTimeMillis()
-            HistoryItem(value, ts)
-        }.sortedByDescending { it.timestamp }
-        historyList.value = items
-    }
-
-    fun clear() {
-        prefs.edit().clear().apply()
-        historyList.value = emptyList()
-    }
-
-    companion object {
-        const val PREFS_NAME = "browser_history"
+    suspend fun clear() {
+        dao.deleteAll()
     }
 }

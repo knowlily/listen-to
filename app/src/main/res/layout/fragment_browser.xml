@@ -24,6 +24,17 @@
         android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTabBar"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:scrollbars="none"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardAddressBar"
             android:layout_width="match_parent"
@@ -104,8 +115,8 @@
             android:visibility="gone"
             app:indicatorColor="@color/primary" />
 
-        <WebView
-            android:id="@+id/webView"
+        <FrameLayout
+            android:id="@+id/webViewContainer"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />

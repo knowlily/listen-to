@@ -3,18 +3,21 @@ package com.knowlily.browser.viewmodel
 import android.app.Application
 import android.webkit.CookieManager
 import android.webkit.WebStorage
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.knowlily.browser.plugin.BrowserPlugin
 import com.knowlily.browser.plugin.PluginManager
 import com.knowlily.browser.repository.SettingsRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val settingsRepo = SettingsRepository(application)
-    private val pluginManager = PluginManager.getInstance(application)
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
+    application: Application,
+    private val settingsRepo: SettingsRepository,
+    private val pluginManager: PluginManager
+) : AndroidViewModel(application) {
 
     val themeMode: LiveData<Int> = settingsRepo.themeMode
     val userAgentMode: LiveData<String> = settingsRepo.userAgentMode

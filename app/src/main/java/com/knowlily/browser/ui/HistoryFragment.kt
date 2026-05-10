@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import dagger.hilt.android.AndroidEntryPoint
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
@@ -19,6 +20,7 @@ import com.knowlily.browser.MainActivity
 import com.knowlily.browser.viewmodel.BrowserViewModel
 import com.knowlily.browser.viewmodel.HistoryViewModel
 
+@AndroidEntryPoint
 class HistoryFragment : Fragment() {
 
     private val historyViewModel: HistoryViewModel by activityViewModels()

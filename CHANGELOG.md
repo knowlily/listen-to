@@ -5,8 +5,30 @@
 GitHub Releases: https://github.com/knowlily/listen-to/releases
 
 ## 当前版本
-- **最新版本**: 1.10 (versionCode 11)
+- **最新版本**: 2.0 (versionCode 12)
 - **构建日期**: 2026-05-10
+
+## [2.0.0] - 2026-05-10
+
+### 新增
+- **Room 数据库**: 历史记录和书签改用 Room 持久化，Kotlin Flow 自动刷新列表
+- **多标签页**: 标签栏横向滚动，新建/关闭/切换标签，长按 "+" 新建隐私标签
+- **隐私模式**: 按标签页独立隐身，不留历史、禁用 Cookie、不缓存
+- **文件下载**: WebView 下载监听，接入系统 DownloadManager 通知栏下载
+- **SSL 证书处理**: 不受信任/过期/域名不匹配证书弹窗警告
+- **Hilt 依赖注入**: ViewModel/Repository 层依赖注入解耦
+
+### 改进
+- SharedPreferences 历史/书签数据自动迁移至 Room（首次启动）
+- 硬件加速显式启用 (LAYER_TYPE_HARDWARE)
+- 后退/前进按钮状态联动 WebView 导航历史
+- README 更新：技术栈（Hilt/Room/Flow）、项目结构、权限说明
+- .gitignore 补充 Room DB 运行时文件
+
+### 修复
+- 页面频闪：分离 navigateUrl 与 currentUrl LiveData，消除反馈循环
+- 主题色同步：SettingsRepository 单例化，跨 ViewModel LiveData 共享
+- 网址输入跳转外部浏览器：修复 URL 加载反馈环路
 
 ## [1.10.0] - 2026-05-10
 

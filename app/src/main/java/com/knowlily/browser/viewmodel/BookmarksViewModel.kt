@@ -3,20 +3,29 @@ package com.knowlily.browser.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import com.knowlily.browser.model.BookmarkItem
 import com.knowlily.browser.repository.BookmarksRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class BookmarksViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class BookmarksViewModel @Inject constructor(
+    application: Application,
+    private val repo: BookmarksRepository
+) : AndroidViewModel(application) {
 
-    private val repo = BookmarksRepository(application)
+    val bookmarksList: LiveData<List<BookmarkItem>> = repo.bookmarksFlow.asLiveData()
 
-    val bookmarksList: LiveData<List<BookmarkItem>> = repo.bookmarksList
-
-    init {
-        repo.loadAll()
+    fun addBookmark(url: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            onResult(repo.add(url))
+        }
     }
 
-    fun addBookmark(url: String): Boolean = repo.add(url)
-    fun clearBookmarks() = repo.clear()
-    fun bookmarkExists(url: String): Boolean = repo.exists(url)
+    fun clearBookmarks() {
+        viewModelScope.launch { repo.clear() }
+    }
 }

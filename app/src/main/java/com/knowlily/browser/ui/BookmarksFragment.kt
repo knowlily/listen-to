@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import dagger.hilt.android.AndroidEntryPoint
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
@@ -19,6 +20,7 @@ import com.knowlily.browser.MainActivity
 import com.knowlily.browser.viewmodel.BookmarksViewModel
 import com.knowlily.browser.viewmodel.BrowserViewModel
 
+@AndroidEntryPoint
 class BookmarksFragment : Fragment() {
 
     private val bookmarksViewModel: BookmarksViewModel by activityViewModels()
@@ -54,10 +56,11 @@ class BookmarksFragment : Fragment() {
         btnAddBookmark.setOnClickListener {
             val url = browserViewModel.currentUrl.value.orEmpty()
             if (url.isNotEmpty() && url != "about:blank") {
-                val ok = bookmarksViewModel.addBookmark(url)
-                Snackbar.make(requireView(),
-                    if (ok) "书签已添加" else "该书签已存在",
-                    Snackbar.LENGTH_SHORT).show()
+                bookmarksViewModel.addBookmark(url) { ok ->
+                    Snackbar.make(requireView(),
+                        if (ok) "书签已添加" else "该书签已存在",
+                        Snackbar.LENGTH_SHORT).show()
+                }
             } else {
                 Snackbar.make(requireView(), "没有可添加的网址", Snackbar.LENGTH_SHORT).show()
             }

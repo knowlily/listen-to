@@ -1,40 +1,24 @@
 package com.knowlily.browser.repository
 
-import android.content.Context
-import androidx.lifecycle.MutableLiveData
+import com.knowlily.browser.data.BookmarksDao
 import com.knowlily.browser.model.BookmarkItem
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class BookmarksRepository(context: Context) {
+@Singleton
+class BookmarksRepository @Inject constructor(
+    private val dao: BookmarksDao
+) {
+    val bookmarksFlow: Flow<List<BookmarkItem>> = dao.getAllFlow()
 
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-
-    val bookmarksList = MutableLiveData<List<BookmarkItem>>(emptyList())
-
-    fun add(url: String): Boolean {
-        if (exists(url)) return false
-        val key = "${System.currentTimeMillis()}-$url"
-        prefs.edit().putString(key, url).apply()
-        loadAll()
+    suspend fun add(url: String): Boolean {
+        if (dao.exists(url)) return false
+        dao.insert(BookmarkItem(url = url, timestamp = System.currentTimeMillis()))
         return true
     }
 
-    fun loadAll() {
-        val items = prefs.all.mapNotNull { (key, value) ->
-            if (value !is String) return@mapNotNull null
-            val ts = key.substringBefore("-").toLongOrNull() ?: System.currentTimeMillis()
-            BookmarkItem(value, ts)
-        }.sortedByDescending { it.timestamp }
-        bookmarksList.value = items
-    }
-
-    fun exists(url: String): Boolean = prefs.all.values.any { it == url }
-
-    fun clear() {
-        prefs.edit().clear().apply()
-        bookmarksList.value = emptyList()
-    }
-
-    companion object {
-        const val PREFS_NAME = "browser_bookmarks"
+    suspend fun clear() {
+        dao.deleteAll()
     }
 }

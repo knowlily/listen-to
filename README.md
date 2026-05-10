@@ -18,17 +18,28 @@
 - 加载进度条：线性进度指示器
 - 浏览器插件系统：内置广告拦截 + 夜间模式，支持用户安装 JS/CSS/AdBlock 插件
 - 插件安装：支持从 URL 下载或本地文件加载 JSON 配置
+- 多标签页浏览：标签栏切换，新建/关闭标签，单 WebView 实例状态保持
+- 隐私模式：按标签页独立隐身，不留历史、不存 Cookie、不缓存
+- 文件下载：DownloadManager 下载通知，SSL 证书错误对话框
+- Room 数据库：Kotlin Flow 自动刷新历史记录和书签列表
+- Hilt 依赖注入：模块解耦，代码可测试性提升
 - ViewModel + Repository 架构：数据持久化与 UI 分离，旋转屏幕不丢状态
-- 单 Activity 多 Fragment：流畅的 Tab 切换，WebView 实例共享
+- 单 Activity 多 Fragment：流畅的 Tab 切换
 
 ## 技术栈
 
-- Kotlin
-- Android Jetpack (ViewModel, LiveData, Fragment)
-- Material Design 2 Components
+- Kotlin 1.9.22
+- Android Jetpack (ViewModel, LiveData, Fragment, Room)
+- Material Design 2 Components (1.13.0)
 - Android System WebView
-- SharedPreferences 持久化
+- Hilt 依赖注入 (2.50)
+- Room 数据库 (2.6.1)
+- Kotlin Flow & Coroutines
 - Repository 架构模式
+
+## 下载
+
+从 [GitHub Releases](https://github.com/knowlily/listen-to/releases) 下载最新 APK。
 
 ## 项目结构
 
@@ -36,26 +47,36 @@
 app/
 ├── src/main/java/com/knowlily/browser/
 │   ├── MainActivity.kt              # 单一 Activity，管理 Fragment 切换
+│   ├── KnowlilyApplication.kt       # Hilt Application
+│   ├── di/
+│   │   ├── AppModule.kt             # Hilt 模块：SettingsRepository, PluginManager
+│   │   └── DatabaseModule.kt        # Hilt 模块：Room DB, DAOs
+│   ├── data/
+│   │   ├── AppDatabase.kt           # Room 数据库
+│   │   ├── HistoryDao.kt            # 历史记录 DAO
+│   │   └── BookmarksDao.kt          # 书签 DAO
 │   ├── model/
-│   │   ├── HistoryItem.kt           # 历史记录数据类
-│   │   └── BookmarkItem.kt          # 书签数据类
+│   │   ├── HistoryItem.kt           # 历史记录实体
+│   │   ├── BookmarkItem.kt          # 书签实体
+│   │   └── TabItem.kt               # 标签页数据
 │   ├── ui/
-│   │   ├── BrowserFragment.kt       # 浏览器主界面 (WebView)
+│   │   ├── BrowserFragment.kt       # 浏览器主界面 (标签栏 + WebView)
 │   │   ├── HistoryFragment.kt       # 历史记录页
 │   │   ├── BookmarksFragment.kt     # 书签管理页
 │   │   └── SettingsFragment.kt      # 设置页
 │   ├── viewmodel/
-│   │   ├── BrowserViewModel.kt      # 浏览器状态管理
+│   │   ├── BrowserViewModel.kt      # 浏览器状态 + 标签管理
 │   │   ├── HistoryViewModel.kt      # 历史记录状态
 │   │   ├── BookmarksViewModel.kt    # 书签状态
 │   │   └── SettingsViewModel.kt     # 设置状态
 │   ├── repository/
-│   │   ├── SettingsRepository.kt    # 设置数据持久化
-│   │   ├── HistoryRepository.kt     # 历史记录持久化
-│   │   └── BookmarksRepository.kt   # 书签持久化
+│   │   ├── SettingsRepository.kt    # 设置持久化 (SharedPreferences)
+│   │   ├── HistoryRepository.kt     # 历史记录持久化 (Room)
+│   │   └── BookmarksRepository.kt   # 书签持久化 (Room)
 │   ├── adapter/
 │   │   ├── HistoryAdapter.kt        # 历史记录列表适配器
-│   │   └── BookmarksAdapter.kt      # 书签列表适配器
+│   │   ├── BookmarksAdapter.kt      # 书签列表适配器
+│   │   └── TabAdapter.kt            # 标签栏适配器
 │   └── plugin/
 │       ├── BrowserPlugin.kt         # 插件统一接口
 │       ├── PluginManager.kt         # 插件管理器
@@ -65,11 +86,6 @@ app/
 │       └── UserPluginRepository.kt  # 用户插件持久化
 ├── src/main/res/
 │   ├── layout/                    # 布局文件
-│   │   ├── activity_main.xml      # 主界面
-│   │   ├── activity_settings.xml  # 设置界面
-│   │   ├── activity_history.xml   # 历史记录界面
-│   │   ├── activity_bookmarks.xml # 书签界面
-│   │   └── item_bookmark.xml      # 书签列表项
 │   ├── values/                    # 资源文件 (颜色、字符串、样式)
 │   ├── drawable/                  # 矢量图标
 │   ├── menu/                      # 菜单 (bottom_nav_menu)
@@ -103,6 +119,7 @@ app/
 
 - `INTERNET` — 访问互联网
 - `ACCESS_NETWORK_STATE` — 检查网络连接状态
+- `WRITE_EXTERNAL_STORAGE` (API < 29) — 文件下载
 
 ## 兼容性
 
