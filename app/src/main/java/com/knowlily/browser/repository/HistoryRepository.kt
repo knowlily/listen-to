@@ -19,4 +19,6 @@ class HistoryRepository @Inject constructor(
     suspend fun clear() {
         dao.deleteAll()
     }
+
+    suspend fun search(query: String): List<HistoryItem> = dao.search(query)
 }

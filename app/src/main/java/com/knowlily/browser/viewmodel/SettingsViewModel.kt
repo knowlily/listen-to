@@ -65,6 +65,12 @@ class SettingsViewModel @Inject constructor(
 
     fun isBuiltinPlugin(id: String): Boolean = pluginManager.isBuiltinPlugin(id)
 
+    fun isHttpsOnly(): Boolean = settingsRepo.isHttpsOnly()
+
+    fun setHttpsOnly(enabled: Boolean) {
+        settingsRepo.setHttpsOnly(enabled)
+    }
+
     fun refreshPlugins() {
         plugins.value = pluginManager.getPlugins()
     }

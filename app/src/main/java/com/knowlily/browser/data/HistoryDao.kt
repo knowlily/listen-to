@@ -18,4 +18,7 @@ interface HistoryDao {
 
     @Query("DELETE FROM history")
     suspend fun deleteAll()
+
+    @Query("SELECT * FROM history WHERE url LIKE '%' || :query || '%' ORDER BY timestamp DESC LIMIT 10")
+    suspend fun search(query: String): List<HistoryItem>
 }

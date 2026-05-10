@@ -37,6 +37,13 @@ class SettingsRepository private constructor(context: Context) {
         userAgentMode.value = mode
     }
 
+    fun isHttpsOnly(): Boolean =
+        prefs.getBoolean(KEY_HTTPS_ONLY, false)
+
+    fun setHttpsOnly(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_HTTPS_ONLY, enabled).apply()
+    }
+
     companion object {
         @Volatile
         private var INSTANCE: SettingsRepository? = null
@@ -51,6 +58,7 @@ class SettingsRepository private constructor(context: Context) {
         const val KEY_THEME_MODE = "theme_mode"
         const val KEY_ACCENT_COLOR = "accent_color"
         const val KEY_UA_MODE = "user_agent_mode"
+        const val KEY_HTTPS_ONLY = "https_only"
         val DEFAULT_PURPLE = 0xFF6750A4.toInt()
     }
 }

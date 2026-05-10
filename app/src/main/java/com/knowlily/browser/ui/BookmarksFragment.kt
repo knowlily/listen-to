@@ -1,10 +1,14 @@
 package com.knowlily.browser.ui
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,7 +37,13 @@ class BookmarksFragment : Fragment() {
     private lateinit var tvCurrentUrl: TextView
     private lateinit var btnAddBookmark: MaterialButton
     private lateinit var btnClearBookmarks: MaterialButton
+    private lateinit var btnExportBookmarks: MaterialButton
+    private lateinit var btnImportBookmarks: MaterialButton
     private lateinit var adapter: BookmarksAdapter
+
+    private val importFilePicker = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri -> uri?.let { importFromUri(it) } }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_bookmarks, container, false)
@@ -48,6 +58,8 @@ class BookmarksFragment : Fragment() {
         tvCurrentUrl = view.findViewById(R.id.tvCurrentUrl)
         btnAddBookmark = view.findViewById(R.id.btnAddBookmark)
         btnClearBookmarks = view.findViewById(R.id.btnClearBookmarks)
+        btnExportBookmarks = view.findViewById(R.id.btnExportBookmarks)
+        btnImportBookmarks = view.findViewById(R.id.btnImportBookmarks)
 
         setupRecyclerView()
         observeViewModel()
@@ -69,6 +81,20 @@ class BookmarksFragment : Fragment() {
         btnClearBookmarks.setOnClickListener {
             bookmarksViewModel.clearBookmarks()
             Snackbar.make(requireView(), "书签已清除", Snackbar.LENGTH_SHORT).show()
+        }
+
+        btnExportBookmarks.setOnClickListener {
+            bookmarksViewModel.exportBookmarks { json ->
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/json"
+                    putExtra(Intent.EXTRA_TEXT, json)
+                }
+                startActivity(Intent.createChooser(shareIntent, "导出书签"))
+            }
+        }
+
+        btnImportBookmarks.setOnClickListener {
+            importFilePicker.launch(arrayOf("application/json", "*/*"))
         }
     }
 
@@ -99,6 +125,22 @@ class BookmarksFragment : Fragment() {
         browserViewModel.accentColor.observe(viewLifecycleOwner) { color ->
             toolbar.setBackgroundColor(color)
             appBarLayout.setBackgroundColor(color)
+        }
+    }
+
+    private fun importFromUri(uri: Uri) {
+        try {
+            val json = requireContext().contentResolver.openInputStream(uri)
+                ?.bufferedReader()?.readText() ?: ""
+            if (json.isBlank()) {
+                Snackbar.make(requireView(), "文件为空", Snackbar.LENGTH_SHORT).show()
+                return
+            }
+            bookmarksViewModel.importBookmarks(json) { count ->
+                Snackbar.make(requireView(), "已导入 $count 条书签", Snackbar.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Snackbar.make(requireView(), "导入失败: ${e.localizedMessage}", Snackbar.LENGTH_LONG).show()
         }
     }
 

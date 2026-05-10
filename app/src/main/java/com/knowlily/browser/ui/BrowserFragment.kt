@@ -8,11 +8,17 @@ import android.net.Uri
 import android.net.http.SslError
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.webkit.CookieManager
+import android.webkit.WebView.FindListener
 import android.webkit.SslErrorHandler
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -20,8 +26,11 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
@@ -45,6 +54,7 @@ class BrowserFragment : Fragment() {
     private var currentWebView: WebView? = null
     private var currentTabId = 0
     private val webViewStates = mutableMapOf<Int, Bundle?>()
+    private val maxSavedStates = 5
 
     private lateinit var etUrl: TextInputEditText
     private lateinit var btnBack: MaterialButton
@@ -58,11 +68,23 @@ class BrowserFragment : Fragment() {
     private lateinit var popupWebViewContainer: FrameLayout
     private lateinit var popupToolbar: MaterialToolbar
     private lateinit var webViewContainer: FrameLayout
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var rvTabBar: RecyclerView
     private lateinit var tabAdapter: TabAdapter
+    private lateinit var rvSuggestions: RecyclerView
+    private val suggestionAdapter = SuggestionAdapter { suggestion -> loadSuggestion(suggestion) }
+    private var errorView: View? = null
+
+    // Find bar
+    private lateinit var findBar: View
+    private lateinit var etFindQuery: TextInputEditText
+    private lateinit var tvFindCount: android.widget.TextView
+    private var findListener: FindListener? = null
 
     private var isNavigationHidden = false
     private val scrollThreshold = 100
+    private val searchDebounceHandler = Handler(Looper.getMainLooper())
+    private var searchDebounceRunnable: Runnable? = null
     private var popupWebView: WebView? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -71,6 +93,7 @@ class BrowserFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
         initViews(view)
         setupTabBar()
         setupButtonListeners()
@@ -79,6 +102,20 @@ class BrowserFragment : Fragment() {
 
         if (savedInstanceState == null && browserViewModel.currentUrl.value.isNullOrEmpty()) {
             browserViewModel.loadUrl("https://www.bing.com")
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.toolbar_menu, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_find_in_page -> {
+                openFindBar()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -96,8 +133,47 @@ class BrowserFragment : Fragment() {
         popupWebViewContainer = view.findViewById(R.id.popupWebViewContainer)
         popupToolbar = view.findViewById(R.id.popupToolbar)
         rvTabBar = view.findViewById(R.id.rvTabBar)
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
+        rvSuggestions = view.findViewById(R.id.rvSuggestions)
+        rvSuggestions.layoutManager = LinearLayoutManager(requireContext())
+        rvSuggestions.adapter = suggestionAdapter
+
+        swipeRefresh.setOnRefreshListener { currentWebView?.reload() }
 
         popupToolbar.setNavigationOnClickListener { closePopup() }
+
+        // Find bar
+        findBar = view.findViewById(R.id.findBar)
+        etFindQuery = view.findViewById(R.id.etFindQuery)
+        tvFindCount = view.findViewById(R.id.tvFindCount)
+        view.findViewById<MaterialButton>(R.id.btnFindPrev).setOnClickListener { currentWebView?.findNext(false) }
+        view.findViewById<MaterialButton>(R.id.btnFindNext).setOnClickListener { currentWebView?.findNext(true) }
+        view.findViewById<MaterialButton>(R.id.btnFindClose).setOnClickListener { closeFindBar() }
+        etFindQuery.addTextChangedListener(object : android.text.TextWatcher {
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val query = s?.toString() ?: ""
+                if (query.isNotEmpty()) currentWebView?.findAllAsync(query)
+                else currentWebView?.clearMatches()
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+        etFindQuery.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                currentWebView?.findNext(true)
+                true
+            } else false
+        }
+
+        // Error page
+        errorView = LayoutInflater.from(requireContext()).inflate(R.layout.view_error_page, webViewContainer, false)
+        errorView!!.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnErrorRetry)
+            .setOnClickListener { retryLoad() }
+        errorView!!.visibility = View.GONE
+        webViewContainer.addView(errorView, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        ))
     }
 
     private fun setupTabBar() {
@@ -144,9 +220,12 @@ class BrowserFragment : Fragment() {
                     browserViewModel.currentUrl.value = it
                     browserViewModel.updateTabUrl(currentTabId, it)
                 }
+                errorView?.visibility = View.GONE
+                currentWebView?.visibility = View.VISIBLE
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
+                swipeRefresh.isRefreshing = false
                 url?.let {
                     if (!browserViewModel.isActiveTabIncognito()) {
                         browserViewModel.onPageFinished(it)
@@ -162,6 +241,8 @@ class BrowserFragment : Fragment() {
                 if (request?.isForMainFrame == true) {
                     browserViewModel.isLoading.value = false
                     progressBar.visibility = View.GONE
+                    currentWebView?.visibility = View.GONE
+                    errorView?.visibility = View.VISIBLE
                 }
             }
 
@@ -249,6 +330,12 @@ class BrowserFragment : Fragment() {
             }
         }
 
+        wv.setFindListener { activeMatchOrdinal, numberOfMatches, isDoneCounting ->
+            if (isDoneCounting) {
+                tvFindCount.text = if (numberOfMatches > 0) "$activeMatchOrdinal/$numberOfMatches" else "0/0"
+            }
+        }
+
         wv.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
             val dy = scrollY - oldScrollY
             if (dy > scrollThreshold && !isNavigationHidden) hideNavigation()
@@ -261,6 +348,7 @@ class BrowserFragment : Fragment() {
     }
 
     private fun switchToTab(tabId: Int) {
+        closeFindBar()
         browserViewModel.getTabUrl(currentTabId)?.let { browserViewModel.updateTabUrl(currentTabId, it) }
 
         // Save current WebView state
@@ -291,6 +379,12 @@ class BrowserFragment : Fragment() {
             wv.loadUrl(savedUrl)
         }
 
+        // LRU eviction: keep max 5 saved WebView states
+        while (webViewStates.size > maxSavedStates) {
+            val oldestKey = webViewStates.keys.firstOrNull { it != tabId && it != currentTabId }
+            if (oldestKey != null) webViewStates.remove(oldestKey) else break
+        }
+
         // Restore cookie acceptance for normal tabs
         if (!tab.isIncognito) {
             CookieManager.getInstance().setAcceptCookie(true)
@@ -307,11 +401,25 @@ class BrowserFragment : Fragment() {
 
         etUrl.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_GO) {
+                browserViewModel.clearSuggestions()
                 browserViewModel.loadUrl(etUrl.text.toString())
                 currentWebView?.requestFocus()
                 true
             } else false
         }
+
+        // Autocomplete debounce
+        etUrl.addTextChangedListener(object : android.text.TextWatcher {
+            override fun afterTextChanged(s: android.text.Editable?) {
+                searchDebounceRunnable?.let { searchDebounceHandler.removeCallbacks(it) }
+                searchDebounceRunnable = Runnable {
+                    browserViewModel.searchSuggestions(s?.toString() ?: "")
+                }
+                searchDebounceHandler.postDelayed(searchDebounceRunnable!!, 200)
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
     }
 
     private fun observeViewModel() {
@@ -348,6 +456,18 @@ class BrowserFragment : Fragment() {
 
         browserViewModel.tabs.observe(viewLifecycleOwner) { tabs ->
             tabAdapter.submitList(tabs)
+            // Clean up webViewStates for removed tabs
+            val activeIds = tabs.map { it.id }.toSet()
+            webViewStates.keys.removeAll { it !in activeIds }
+        }
+
+        browserViewModel.maxTabReached.observe(viewLifecycleOwner) {
+            Toast.makeText(requireContext(), "最多同时打开 20 个标签页", Toast.LENGTH_SHORT).show()
+        }
+
+        browserViewModel.suggestions.observe(viewLifecycleOwner) { suggestions ->
+            suggestionAdapter.submitList(suggestions)
+            rvSuggestions.visibility = if (suggestions.isNotEmpty()) View.VISIBLE else View.GONE
         }
 
         browserViewModel.activeTabId.observe(viewLifecycleOwner) { id ->
@@ -387,6 +507,25 @@ class BrowserFragment : Fragment() {
         isNavigationHidden = false
     }
 
+    private fun openFindBar() {
+        findBar.visibility = View.VISIBLE
+        etFindQuery.requestFocus()
+    }
+
+    private fun closeFindBar() {
+        findBar.visibility = View.GONE
+        currentWebView?.clearMatches()
+        tvFindCount.text = "0/0"
+        etFindQuery.text?.clear()
+        etFindQuery.clearFocus()
+    }
+
+    private fun retryLoad() {
+        errorView?.visibility = View.GONE
+        currentWebView?.visibility = View.VISIBLE
+        currentWebView?.reload()
+    }
+
     fun closePopup() {
         popupContainer.visibility = View.GONE
         popupWebViewContainer.removeAllViews()
@@ -412,6 +551,48 @@ class BrowserFragment : Fragment() {
             val state = Bundle()
             it.saveState(state)
             outState.putBundle("webViewState_$currentTabId", state)
+        }
+    }
+
+    private fun loadSuggestion(item: com.knowlily.browser.viewmodel.SuggestItem) {
+        browserViewModel.clearSuggestions()
+        etUrl.setText(item.url)
+        etUrl.setSelection(item.url.length)
+        browserViewModel.loadUrl(item.url)
+        currentWebView?.requestFocus()
+    }
+}
+
+class SuggestionAdapter(
+    private val onClick: (com.knowlily.browser.viewmodel.SuggestItem) -> Unit
+) : androidx.recyclerview.widget.RecyclerView.Adapter<SuggestionAdapter.ViewHolder>() {
+
+    private var items = listOf<com.knowlily.browser.viewmodel.SuggestItem>()
+
+    fun submitList(list: List<com.knowlily.browser.viewmodel.SuggestItem>) {
+        items = list
+        notifyDataSetChanged()
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_suggestion, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(items[position], onClick)
+    }
+
+    override fun getItemCount(): Int = items.size
+
+    class ViewHolder(itemView: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(itemView) {
+        private val tvUrl: android.widget.TextView = itemView.findViewById(R.id.tvSuggestionUrl)
+        private val tvType: android.widget.TextView = itemView.findViewById(R.id.tvSuggestionType)
+
+        fun bind(item: com.knowlily.browser.viewmodel.SuggestItem, onClick: (com.knowlily.browser.viewmodel.SuggestItem) -> Unit) {
+            tvUrl.text = item.url
+            tvType.text = if (item.type == com.knowlily.browser.viewmodel.SuggestType.HISTORY) "历史记录" else "书签"
+            itemView.setOnClickListener { onClick(item) }
         }
     }
 }

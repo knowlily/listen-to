@@ -49,6 +49,7 @@ class SettingsFragment : Fragment() {
     private lateinit var btnInstallFromUrl: MaterialButton
     private lateinit var btnInstallFromFile: MaterialButton
     private lateinit var pluginContainer: LinearLayout
+    private lateinit var switchHttpsOnly: SwitchMaterial
 
     private val colorPresets = mapOf(
         R.id.btnColorPurple to 0xFF6750A4.toInt(),
@@ -89,6 +90,12 @@ class SettingsFragment : Fragment() {
         btnInstallFromUrl = view.findViewById(R.id.btnInstallFromUrl)
         btnInstallFromFile = view.findViewById(R.id.btnInstallFromFile)
         pluginContainer = view.findViewById(R.id.pluginContainer)
+        switchHttpsOnly = view.findViewById(R.id.switchHttpsOnly)
+
+        switchHttpsOnly.isChecked = settingsViewModel.isHttpsOnly()
+        switchHttpsOnly.setOnCheckedChangeListener { _, enabled ->
+            settingsViewModel.setHttpsOnly(enabled)
+        }
 
         view.findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardAbout).setOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/knowlily/listen-to")))

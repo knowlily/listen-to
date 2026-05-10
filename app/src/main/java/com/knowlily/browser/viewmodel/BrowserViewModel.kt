@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import com.knowlily.browser.model.TabItem
 import com.knowlily.browser.plugin.PluginManager
+import com.knowlily.browser.repository.BookmarksRepository
 import com.knowlily.browser.repository.HistoryRepository
 import com.knowlily.browser.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +23,7 @@ class BrowserViewModel @Inject constructor(
     application: Application,
     private val settingsRepo: SettingsRepository,
     private val historyRepo: HistoryRepository,
+    private val bookmarksRepo: BookmarksRepository,
     val pluginManager: PluginManager
 ) : AndroidViewModel(application) {
 
@@ -45,6 +47,10 @@ class BrowserViewModel @Inject constructor(
     }
 
     // Tab management
+    companion object {
+        const val MAX_TABS = 20
+    }
+
     private var nextTabId = 1
     private val _tabs = MutableLiveData<List<TabItem>>(listOf(TabItem(id = 0, title = "新标签页")))
     val tabs: LiveData<List<TabItem>> = _tabs
@@ -52,8 +58,15 @@ class BrowserViewModel @Inject constructor(
     val activeTabId: LiveData<Int> = _activeTabId
     private val tabUrls = mutableMapOf<Int, String>()
 
+    private val _maxTabReached = MutableLiveData<Unit>()
+    val maxTabReached: LiveData<Unit> = _maxTabReached
+
     fun addTab(isIncognito: Boolean = false) {
         val list = _tabs.value.orEmpty().toMutableList()
+        if (list.size >= MAX_TABS) {
+            _maxTabReached.value = Unit
+            return
+        }
         val tab = TabItem(id = nextTabId++, isIncognito = isIncognito)
         list.add(tab)
         _tabs.value = list
@@ -114,6 +127,11 @@ class BrowserViewModel @Inject constructor(
         var url = rawUrl.trim()
         if (url.isEmpty()) return
 
+        // HTTPS-Only: upgrade HTTP to HTTPS
+        if (settingsRepo.isHttpsOnly() && url.startsWith("http://")) {
+            url = url.replaceFirst("http://", "https://")
+        }
+
         // Add https:// if no scheme
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             if (url.contains(".") && !url.contains(" ")) {
@@ -151,4 +169,36 @@ class BrowserViewModel @Inject constructor(
         loadProgress.value = progress
         isLoading.value = progress < 100
     }
+
+    // Autocomplete suggestions
+    private val _suggestions = MutableLiveData<List<SuggestItem>>(emptyList())
+    val suggestions: LiveData<List<SuggestItem>> = _suggestions
+
+    fun searchSuggestions(query: String) {
+        if (query.length < 2) {
+            _suggestions.value = emptyList()
+            return
+        }
+        viewModelScope.launch {
+            val historyResults = historyRepo.search(query).map {
+                SuggestItem(it.url, it.url, SuggestType.HISTORY)
+            }
+            val bookmarkResults = bookmarksRepo.search(query).map {
+                SuggestItem(it.url, it.url, SuggestType.BOOKMARK)
+            }
+            _suggestions.value = (historyResults + bookmarkResults).distinctBy { it.url }.take(8)
+        }
+    }
+
+    fun clearSuggestions() {
+        _suggestions.value = emptyList()
+    }
 }
+
+data class SuggestItem(
+    val url: String,
+    val title: String,
+    val type: SuggestType
+)
+
+enum class SuggestType { HISTORY, BOOKMARK }

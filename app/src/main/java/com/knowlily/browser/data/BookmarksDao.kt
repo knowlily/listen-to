@@ -21,4 +21,10 @@ interface BookmarksDao {
 
     @Query("DELETE FROM bookmarks")
     suspend fun deleteAll()
+
+    @Query("SELECT * FROM bookmarks WHERE url LIKE '%' || :query || '%' ORDER BY timestamp DESC LIMIT 10")
+    suspend fun search(query: String): List<BookmarkItem>
+
+    @Query("SELECT * FROM bookmarks ORDER BY timestamp DESC")
+    suspend fun getAll(): List<BookmarkItem>
 }

@@ -28,4 +28,16 @@ class BookmarksViewModel @Inject constructor(
     fun clearBookmarks() {
         viewModelScope.launch { repo.clear() }
     }
+
+    fun exportBookmarks(onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            onResult(repo.exportToJson())
+        }
+    }
+
+    fun importBookmarks(json: String, onResult: (Int) -> Unit) {
+        viewModelScope.launch {
+            onResult(repo.importFromJson(json))
+        }
+    }
 }

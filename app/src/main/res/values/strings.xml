@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">简单浏览器</string>
+    <string name="app_name">listen x</string>
     <string name="back">后退</string>
     <string name="forward">前进</string>
     <string name="refresh">刷新</string>
